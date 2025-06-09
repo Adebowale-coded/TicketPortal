@@ -4,7 +4,7 @@ import DashboardLayout from '../../layouts/Dashboardlayouts';
 const IncidenceReport = () => {
   return (
     <DashboardLayout>
-      <div className="max-w-3xl mx-auto mt-6 bg-white shadow-sm p-6 border border-gray-200 rounded-md">
+      <div className="max-w-full mx-auto mt-6 bg-white shadow-sm p-6 border border-gray-200 rounded-md">
         <h2 className="text-xl font-semibold mb-4">Submit Incidence Report</h2>
 
         <form className="space-y-5">

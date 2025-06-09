@@ -31,7 +31,7 @@ const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
         <ul className="space-y-5">
           {/* Shared items */}
           <li>
-            <Link to="/" className="flex items-center gap-3 hover:bg-orange-500 px-4 py-2 rounded transition-colors duration-200">
+            <Link to={role === 'user'?'/UserDashboard':'/admin'} className="flex items-center gap-3 hover:bg-orange-500 px-4 py-2 rounded transition-colors duration-200">
               <img src={Home} alt="Home" className="w-5 h-5" />
               <span>Home</span>
             </Link>
@@ -54,7 +54,7 @@ const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
           {/* User-only */}
           {role === 'user' && (
             <li>
-              <Link to="/raise-ticket" className="flex items-center gap-3 hover:bg-orange-500 px-4 py-2 rounded transition-colors duration-200">
+              <Link to="/raiseticket" className="flex items-center gap-3 hover:bg-orange-500 px-4 py-2 rounded transition-colors duration-200">
                 <img src={User} alt="Raise Ticket" className="w-5 h-5" />
                 <span>Raise Ticket</span>
               </Link>
@@ -62,7 +62,7 @@ const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
           )}
 
           {/* Admin-only */}
-          {role === 'admin' && (
+          {role === "admin" && (
             <>
               <li>
                 <Link to="/incidence-report" className="flex items-center gap-3 hover:bg-orange-500 px-4 py-2 rounded transition-colors duration-200">

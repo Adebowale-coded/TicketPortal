@@ -3,6 +3,7 @@ import DashboardLayout from '../layouts/Dashboardlayouts';
 import InputField from "../components/Inputfield";
 import TextAreaField from "../components/Textarea";
 import SelectField from "../components/Selectfield";
+import { Outlet } from 'react-router-dom';
 
 interface Incident {
   id: string;
@@ -154,7 +155,7 @@ const formData = new FormData();
         onSubmit={handleSubmit}
         className="mt-8 w-full max-w-full mx-auto bg-white p-8 rounded-lg shadow-md"
       >
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Report Incident</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">Raise Ticket</h2>
 
         {/* Incident Info */}
         <InputField
@@ -273,7 +274,7 @@ const formData = new FormData();
             : 'bg-orange-500 hover:bg-orange-600'
             } text-white`}
         >
-          {isSubmitting ? 'Submitting...' : 'Submit Report'}
+          {isSubmitting ? 'Submitting...' : 'Submit'}
         </button>
       </form>
 
@@ -331,6 +332,7 @@ const formData = new FormData();
           </div>
         )}
       </div>
+      <Outlet />
     </DashboardLayout>
   );
 };
