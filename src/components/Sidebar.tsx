@@ -12,8 +12,8 @@ type SidebarProps = {
 };
 
 const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
- /*  const role = localStorage.getItem("role"); */ // either 'admin' or 'user'
-  const role = 'admin'; // either 'admin' or 'user'
+ /*  const role = localStorage.getItem("role") as 'user' | 'admin'; */ // either 'admin' or 'user'
+  const role = 'admin' as 'user' | 'admin'; // either 'admin' or 'user'
 
   return (
     <div className="flex h-screen overflow-hidden">

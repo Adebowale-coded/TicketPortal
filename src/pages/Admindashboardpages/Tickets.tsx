@@ -1,4 +1,3 @@
-import React from 'react';
 import DashboardLayout from '../../layouts/Dashboardlayouts';
 
 const Tickets = () => {
@@ -29,11 +28,11 @@ const Tickets = () => {
 
   return (
     <DashboardLayout>
-      <div className="max-w-full mx-auto mt-6 bg-white shadow-sm p-6 border border-gray-200 rounded-md">
-        <h2 className="text-xl font-semibold mb-6">Tickets Overview</h2>
+      <div className="bg-white shadow-sm mx-auto mt-6 p-6 border border-gray-200 rounded-md max-w-full">
+        <h2 className="mb-6 font-semibold text-xl">Tickets Overview</h2>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full table-auto text-sm text-left">
+          <table className="min-w-full text-sm text-left table-auto">
             <thead className="bg-gray-100 border-b">
               <tr>
                 <th className="px-4 py-3 text-gray-600">Ticket ID</th>
@@ -45,7 +44,7 @@ const Tickets = () => {
             </thead>
             <tbody>
               {tickets.map((ticket) => (
-                <tr key={ticket.id} className="border-b hover:bg-gray-50">
+                <tr key={ticket.id} className="hover:bg-gray-50 border-b">
                   <td className="px-4 py-3 font-medium text-gray-800">{ticket.id}</td>
                   <td className="px-4 py-3">{ticket.subject}</td>
                   <td className="px-4 py-3">
@@ -69,7 +68,7 @@ const Tickets = () => {
           </table>
 
           {tickets.length === 0 && (
-            <div className="text-center text-gray-500 text-sm py-10">
+            <div className="py-10 text-gray-500 text-sm text-center">
               No tickets raised yet.
             </div>
           )}

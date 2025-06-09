@@ -16,11 +16,11 @@ interface Incident {
 }
 
 const UserDashboard = () => {
-  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [tickets, settickets] = useState<Incident[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [files, setFiles] = useState<string[]>([])
+  const [files, setFiles] = useState<File[]>([])
 
-  const [reportData, setReportData] = useState({
+  const [ticketData, setTicketData] = useState({
     title: '',
     ticketDescription: '',
     ticketPriority: '',
@@ -40,26 +40,23 @@ const UserDashboard = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-const formData = new FormData();
-      Object.keys(reportData).forEach(key => {
-        const value = (reportData as any)[key]
-        formData.append(key, value);
-      })
- 
-      files.forEach((file) => {
-        formData.append('attachment', file);
-        console.log(file)
-      });
- 
-      //@ts-ignore
-      for (const file of formData) {
-        console.log(file);
-      }
- 
-      console.log(Object.keys(reportData))
+    const formData = new FormData();
+    formData.append('ticket', JSON.stringify(ticketData));
+
+    files.forEach((file) => {
+      formData.append('attachment', file);
+      console.log(file)
+    });
+
+    //@ts-ignore
+    for (const file of formData) {
+      console.log(file);
+    }
+
+    console.log(Object.keys(ticketData))
     const url = 'https://reportpool.alphamorganbank.com:8443/api/tickets'; // Replace with actual URL
-    const username = 'alphadeskuser';
-    const password = 'Qwerty1234';
+    const username = 'sammyuser';
+    const password = 'Alpha1234$';
     const basicAuth = 'Basic ' + btoa(`${username}:${password}`);
 
     try {
@@ -67,25 +64,8 @@ const formData = new FormData();
         method: 'POST',
         headers: {
           'Authorization': basicAuth,
-          'Content-type':'Application/JSON'
         },
-        body: JSON.stringify({
-          "title": "Printer Issue",
-        "ticketDescription": "Printer not working on floor 3",
-        "ticketPriority": "High",
-        "requesterDept": "Finance",
-        "requesterName": "Alice Tan",
-        "responsibleName": "David Lee",
-        "responsibleDept": "IT Support",
-        "responsibleTeam": "Channels",
-        "ticketStatus": "Closed",
-        "ticketSlaStatus": "On Time",
-        "attachment": "specs.pdf",
-        "loggedTime": "2024-11-01T09:10:00",
-        "closedBy": "John Smith",
-        "closureComment": null,
-        "closureTime": "2024-11-01T14:35:22"
-        }),
+        body: formData,
       });
 
       if (!response.ok) {
@@ -100,20 +80,19 @@ const formData = new FormData();
     }
   }
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setReportData({
-      ...reportData,
+    setTicketData({
+      ...ticketData,
       [e.target.name]: e.target.value,
     });
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-  const files = event.currentTarget.files;
-  if (files) {
-    const fileNames = Array.from(files).map(file => file.name);
-    console.log("Selected file names:", fileNames);
-    setFiles(fileNames); // assuming setFiles accepts string[]
-  }
-};
+    const files = event.currentTarget.files;
+    if (files) {
+      const fileArray = Array.from(files);
+      setFiles(fileArray);
+    }
+  };
 
   const handleDelete = (id: any) => {
 
@@ -123,29 +102,29 @@ const formData = new FormData();
     <DashboardLayout>
       {/* Header */}
       <div>
-        <h1 className='font-semibold font-[poppins]'>Hello, User</h1>
+        <h1 className='font-[poppins] font-semibold'>Hello, User</h1>
       </div>
 
       {/* Status Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 my-8">
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 hover:shadow-lg">
-          <h3 className="text-sm text-gray-500 uppercase font-semibold mb-2">Pending Reports</h3>
-          <p className="text-3xl font-bold text-orange-500">
-            {incidents.filter(i => i.status === 'Open' || i.ticketStatus === 'Open').length}
+      <div className="gap-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 my-8">
+        <div className="bg-white shadow-md hover:shadow-lg p-6 border border-gray-100 rounded-lg">
+          <h3 className="mb-2 font-semibold text-gray-500 text-sm uppercase">Pending Reports</h3>
+          <p className="font-bold text-orange-500 text-3xl">
+            {tickets.filter(i => i.status === 'Open' || i.ticketStatus === 'Open').length}
           </p>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 hover:shadow-lg">
-          <h3 className="text-sm text-gray-500 uppercase font-semibold mb-2">Resolved Cases</h3>
-          <p className="text-3xl font-bold text-green-500">
-            {incidents.filter(i => i.status === 'Closed' || i.ticketStatus === 'Closed').length}
+        <div className="bg-white shadow-md hover:shadow-lg p-6 border border-gray-100 rounded-lg">
+          <h3 className="mb-2 font-semibold text-gray-500 text-sm uppercase">Resolved Cases</h3>
+          <p className="font-bold text-green-500 text-3xl">
+            {tickets.filter(i => i.status === 'Closed' || i.ticketStatus === 'Closed').length}
           </p>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 hover:shadow-lg">
-          <h3 className="text-sm text-gray-500 uppercase font-semibold mb-2">In Progress</h3>
-          <p className="text-3xl font-bold text-blue-500">
-            {incidents.filter(i => i.status === 'In Progress' || i.ticketStatus === 'In Progress').length}
+        <div className="bg-white shadow-md hover:shadow-lg p-6 border border-gray-100 rounded-lg">
+          <h3 className="mb-2 font-semibold text-gray-500 text-sm uppercase">In Progress</h3>
+          <p className="font-bold text-blue-500 text-3xl">
+            {tickets.filter(i => i.status === 'In Progress' || i.ticketStatus === 'In Progress').length}
           </p>
         </div>
       </div>
@@ -153,15 +132,15 @@ const formData = new FormData();
       {/* Form */}
       <form
         onSubmit={handleSubmit}
-        className="mt-8 w-full max-w-full mx-auto bg-white p-8 rounded-lg shadow-md"
+        className="bg-white shadow-md mx-auto mt-8 p-8 rounded-lg w-full max-w-full"
       >
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Raise Ticket</h2>
+        <h2 className="mb-6 font-bold text-gray-800 text-2xl">Raise Ticket</h2>
 
         {/* Incident Info */}
         <InputField
-          label="Incident Title *"
+          label="Ticket Title *"
           name="title"
-          value={reportData.title}
+          value={ticketData.title}
           onChange={handleChange}
           placeholder="e.g. Printer not working"
 
@@ -170,7 +149,7 @@ const formData = new FormData();
         <TextAreaField
           label="Description *"
           name="ticketDescription"
-          value={reportData.ticketDescription}
+          value={ticketData.ticketDescription}
           onChange={handleChange}
           placeholder="e.g. Printer not working on floor 3"
 
@@ -179,19 +158,19 @@ const formData = new FormData();
         <SelectField
           label="Priority *"
           name="ticketPriority"
-          value={reportData.ticketPriority}
+          value={ticketData.ticketPriority}
           onChange={handleChange}
           options={['Low', 'Medium', 'High']}
 
         />
 
         {/* Requester Info */}
-        <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex md:flex-row flex-col gap-4">
           <div className="w-full md:w-1/2">
             <InputField
               label="Requester Name *"
               name="requesterName"
-              value={reportData.requesterName}
+              value={ticketData.requesterName}
               onChange={handleChange}
 
             />
@@ -200,7 +179,7 @@ const formData = new FormData();
             <InputField
               label="Requester Department *"
               name="requesterDept"
-              value={reportData.requesterDept}
+              value={ticketData.requesterDept}
               onChange={handleChange}
 
             />
@@ -208,12 +187,12 @@ const formData = new FormData();
         </div>
 
         {/* Responsible Info */}
-        <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex md:flex-row flex-col gap-4">
           <div className="w-full md:w-1/2">
             <InputField
               label="Responsible Person"
               name="responsibleName"
-              value={reportData.responsibleName}
+              value={ticketData.responsibleName}
               onChange={handleChange}
             />
           </div>
@@ -221,7 +200,7 @@ const formData = new FormData();
             <InputField
               label="Responsible Department"
               name="responsibleDept"
-              value={reportData.responsibleDept}
+              value={ticketData.responsibleDept}
               onChange={handleChange}
             />
           </div>
@@ -230,7 +209,7 @@ const formData = new FormData();
         <SelectField
           label="Responsible Team"
           name="responsibleTeam"
-          value={reportData.responsibleTeam}
+          value={ticketData.responsibleTeam}
           onChange={handleChange}
           options={['Channels', 'Support', 'Network']}
         />
@@ -239,7 +218,7 @@ const formData = new FormData();
         <TextAreaField
           label="Additional Comments"
           name="closureComment"
-          value={reportData.closureComment}
+          value={ticketData.closureComment}
           onChange={handleChange}
           placeholder="Optional additional information..."
         />
@@ -257,10 +236,10 @@ const formData = new FormData();
             name="attachment"
             id="attachment"
             onChange={handleFileChange}
-            className="w-full border border-gray-300 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 w-full"
             accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
           />
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="mt-1 text-gray-500 text-sm">
             Supported formats: PDF, DOC, DOCX, TXT, JPG, PNG (Max 10MB)
           </p>
         </div>
@@ -279,16 +258,16 @@ const formData = new FormData();
       </form>
 
       {/* Incident List */}
-      <div className="mt-12 max-w-full mx-auto bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Submitted Incidents</h2>
+      <div className="bg-white shadow-md mx-auto mt-12 p-6 rounded-lg max-w-full">
+        <h2 className="mb-4 font-bold text-gray-800 text-2xl">Submitted tickets</h2>
 
-        {incidents.length === 0 ? (
+        {tickets.length === 0 ? (
           <p className="text-gray-500 italic">
-            {reportData.requesterName ? 'No incidents found for this requester.' : 'Enter requester name to view incidents.'}
+            {ticketData.requesterName ? 'No tickets found for this requester.' : 'Enter requester name to view tickets.'}
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full text-sm text-left text-gray-700">
+            <table className="min-w-full text-gray-700 text-sm text-left">
               <thead className="bg-gray-100 text-xs uppercase">
                 <tr>
                   <th className="px-4 py-3">Title</th>
@@ -298,8 +277,8 @@ const formData = new FormData();
                 </tr>
               </thead>
               <tbody>
-                {incidents.map((incident) => (
-                  <tr key={incident.id} className="border-t hover:bg-gray-50">
+                {tickets.map((incident) => (
+                  <tr key={incident.id} className="hover:bg-gray-50 border-t">
                     <td className="px-4 py-3">
                       {incident.incidentTitle || incident.title || 'N/A'}
                     </td>
@@ -320,7 +299,7 @@ const formData = new FormData();
                     <td className="px-4 py-3 text-center">
                       <button
                         onClick={() => handleDelete(incident.id)}
-                        className="bg-red-100 text-red-600 px-3 py-1 rounded-md hover:bg-red-200 transition"
+                        className="bg-red-100 hover:bg-red-200 px-3 py-1 rounded-md text-red-600 transition"
                       >
                         Delete
                       </button>

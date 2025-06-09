@@ -6,8 +6,10 @@ import TextAreaField from '../../components/Textarea';
 import SelectField from '../../components/Selectfield';
 
 const RaiseTicket = () => {
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [reportData, setReportData] = useState({
+    const [isSubmitting] = useState(false);
+    const [files, setFiles] = useState<File[]>([])
+
+    const [ticketData, setTicketData] = useState({
         title: '',
         ticketDescription: '',
         ticketPriority: '',
@@ -27,10 +29,23 @@ const RaiseTicket = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        console.log(Object.keys(reportData))
+        const formData = new FormData();
+        formData.append('ticket', JSON.stringify(ticketData));
+
+        files.forEach((file) => {
+            formData.append('attachment', file);
+            console.log(file)
+        });
+
+        //@ts-ignore
+        for (const file of formData) {
+            console.log(file);
+        }
+
+        console.log(Object.keys(ticketData))
         const url = 'https://reportpool.alphamorganbank.com:8443/api/tickets'; // Replace with actual URL
-        const username = 'alphadeskuser';
-        const password = 'Qwerty1234';
+        const username = 'sammyuser';
+        const password = 'Alpha1234$';
         const basicAuth = 'Basic ' + btoa(`${username}:${password}`);
 
         try {
@@ -38,25 +53,8 @@ const RaiseTicket = () => {
                 method: 'POST',
                 headers: {
                     'Authorization': basicAuth,
-                    'Content-type': 'Application/JSON'
                 },
-                body: JSON.stringify({
-                    "title": "Printer Issue",
-                    "ticketDescription": "Printer not working on floor 3",
-                    "ticketPriority": "High",
-                    "requesterDept": "Finance",
-                    "requesterName": "Alice Tan",
-                    "responsibleName": "David Lee",
-                    "responsibleDept": "IT Support",
-                    "responsibleTeam": "Channels",
-                    "ticketStatus": "Closed",
-                    "ticketSlaStatus": "On Time",
-                    "attachment": "specs.pdf",
-                    "loggedTime": "2024-11-01T09:10:00",
-                    "closedBy": "John Smith",
-                    "closureComment": null,
-                    "closureTime": "2024-11-01T14:35:22"
-                }),
+                body: formData,
             });
 
             if (!response.ok) {
@@ -71,24 +69,32 @@ const RaiseTicket = () => {
         }
     }
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        setReportData({
-            ...reportData,
+        setTicketData({
+            ...ticketData,
             [e.target.name]: e.target.value,
         });
+    };
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const files = event.currentTarget.files;
+        if (files) {
+            const fileArray = Array.from(files);
+            setFiles(fileArray);
+        }
     };
     return (
         <DashboardLayout>
             <form
                 onSubmit={handleSubmit}
-                className="mt-8 w-full max-w-3xl mx-auto bg-white p-8 rounded-lg shadow-md"
+                className="bg-white shadow-md mx-auto mt-8 p-8 rounded-lg w-full max-w-3xl"
             >
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Raise Ticket</h2>
+                <h2 className="mb-6 font-bold text-gray-800 text-2xl">Raise Ticket</h2>
 
                 {/* Incident Info */}
                 <InputField
-                    label="Incident Title *"
+                    label="Ticket Title *"
                     name="title"
-                    value={reportData.title}
+                    value={ticketData.title}
                     onChange={handleChange}
                     placeholder="e.g. Printer not working"
                 />
@@ -96,7 +102,7 @@ const RaiseTicket = () => {
                 <TextAreaField
                     label="Description *"
                     name="ticketDescription"
-                    value={reportData.ticketDescription}
+                    value={ticketData.ticketDescription}
                     onChange={handleChange}
                     placeholder="e.g. Printer not working on floor 3"
                 />
@@ -104,18 +110,18 @@ const RaiseTicket = () => {
                 <SelectField
                     label="Priority *"
                     name="ticketPriority"
-                    value={reportData.ticketPriority}
+                    value={ticketData.ticketPriority}
                     onChange={handleChange}
                     options={['Low', 'Medium', 'High']}
                 />
 
                 {/* Requester Info */}
-                <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex md:flex-row flex-col gap-4">
                     <div className="w-full md:w-1/2">
                         <InputField
                             label="Requester Name *"
                             name="requesterName"
-                            value={reportData.requesterName}
+                            value={ticketData.requesterName}
                             onChange={handleChange}
                         />
                     </div>
@@ -123,19 +129,19 @@ const RaiseTicket = () => {
                         <InputField
                             label="Requester Department *"
                             name="requesterDept"
-                            value={reportData.requesterDept}
+                            value={ticketData.requesterDept}
                             onChange={handleChange}
                         />
                     </div>
                 </div>
 
                 {/* Responsible Info */}
-                <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex md:flex-row flex-col gap-4">
                     <div className="w-full md:w-1/2">
                         <InputField
                             label="Responsible Person"
                             name="responsibleName"
-                            value={reportData.responsibleName}
+                            value={ticketData.responsibleName}
                             onChange={handleChange}
                         />
                     </div>
@@ -143,7 +149,7 @@ const RaiseTicket = () => {
                         <InputField
                             label="Responsible Department"
                             name="responsibleDept"
-                            value={reportData.responsibleDept}
+                            value={ticketData.responsibleDept}
                             onChange={handleChange}
                         />
                     </div>
@@ -152,7 +158,7 @@ const RaiseTicket = () => {
                 <SelectField
                     label="Responsible Team"
                     name="responsibleTeam"
-                    value={reportData.responsibleTeam}
+                    value={ticketData.responsibleTeam}
                     onChange={handleChange}
                     options={['Channels', 'Support', 'Network']}
                 />
@@ -161,12 +167,30 @@ const RaiseTicket = () => {
                 <TextAreaField
                     label="Additional Comments"
                     name="closureComment"
-                    value={reportData.closureComment}
+                    value={ticketData.closureComment}
                     onChange={handleChange}
                     placeholder="Optional additional information..."
                 />
 
-               
+                <div className="mb-4">
+                    <label
+                        htmlFor="attachment"
+                        className="block mb-2 font-medium text-gray-700"
+                    >
+                        Attachment
+                    </label>
+                    <input
+                        type="file"
+                        name="attachment"
+                        id="attachment"
+                        onChange={handleFileChange}
+                        className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 w-full"
+                        accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                    />
+                    <p className="mt-1 text-gray-500 text-sm">
+                        Supported formats: PDF, DOC, DOCX, TXT, JPG, PNG (Max 10MB)
+                    </p>
+                </div>
 
                 {/* Submit Button */}
                 <button
