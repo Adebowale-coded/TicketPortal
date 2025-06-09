@@ -97,6 +97,10 @@ const AdminDashboard = () => {
       </p>
 
       <div className="mt-8">
+        <div className="pb-[10px]">
+          <h2 className="font-bold text-[20px]">Ticketing</h2>
+        </div>
+
         <div className="overflow-x-auto border rounded-lg shadow">
           <table className="min-w-full bg-white">
             <thead className="bg-gray-100 text-sm font-semibold text-left text-gray-600">
@@ -161,6 +165,79 @@ const AdminDashboard = () => {
             </tbody>
           </table>
         </div>
+      </div>
+
+
+      <div className="pt-[20px]">
+        <h2 className="font-bold text-[20px]">Incidence Report</h2>
+        <div className="mt-4 max-w-4xl bg-white border p-6 rounded shadow-sm">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              // You can replace this with actual API POST
+              alert("Incidence submitted successfully.");
+            }}
+            className="space-y-4"
+          >
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+              <input
+                type="text"
+                name="title"
+                required
+                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                placeholder="e.g., VPN not connecting"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <textarea
+                name="description"
+                rows={3}
+                required
+                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                placeholder="Describe the issue in detail..."
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Severity</label>
+              <select
+                name="severity"
+                className="w-full border border-gray-300 rounded px-3 py-2"
+                required
+              >
+                <option value="">Select severity</option>
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+                <option value="Critical">Critical</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Reported By</label>
+              <input
+                type="text"
+                name="reportedBy"
+                defaultValue={displayName}
+                readOnly
+                className="w-full border bg-gray-100 text-gray-600 rounded px-3 py-2"
+              />
+            </div>
+
+            <div className="pt-4">
+              <button
+                type="submit"
+                className="bg-green-600 text-white px-5 py-2 rounded hover:bg-green-700"
+              >
+                Submit Incidence
+              </button>
+            </div>
+          </form>
+        </div>
+
       </div>
     </DashboardLayout>
   );

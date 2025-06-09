@@ -1,8 +1,10 @@
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import DashboardLayout from '../layouts/Dashboardlayouts';
 import InputField from "../components/Inputfield";
 import TextAreaField from "../components/Textarea";
 import SelectField from "../components/Selectfield";
+import profile from "../pages/userdashboardpages/Profile"
 
 interface Incident {
   id: string;
