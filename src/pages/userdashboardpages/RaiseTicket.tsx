@@ -86,7 +86,7 @@ const RaiseTicket = () => {
         <DashboardLayout>
             <form
                 onSubmit={handleSubmit}
-                className="bg-white shadow-md mx-auto mt-8 p-8 rounded-lg w-full max-w-3xl"
+                className="bg-white shadow-md mx-auto mt-8 p-8 rounded-lg w-full max-w-full"
             >
                 <h2 className="mb-6 font-bold text-gray-800 text-2xl">Raise Ticket</h2>
 

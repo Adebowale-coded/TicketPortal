@@ -4,6 +4,7 @@ import InputField from "../components/Inputfield";
 import TextAreaField from "../components/Textarea";
 import SelectField from "../components/Selectfield";
 import { Outlet } from 'react-router-dom';
+import axios from "axios";
 
 interface Incident {
   id: string;
@@ -19,17 +20,23 @@ const UserDashboard = () => {
   const [tickets, settickets] = useState<Incident[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [files, setFiles] = useState<File[]>([])
+  const rawUser = localStorage.getItem('username') || '';
+  const user = rawUser
+    .split('.')
+    .map(namePart => namePart.charAt(0).toUpperCase() + namePart.slice(1))
+    .join(' ');
+  const userDept = localStorage.getItem('dept')
 
   const [ticketData, setTicketData] = useState({
     title: '',
     ticketDescription: '',
     ticketPriority: '',
-    requesterDept: '',
-    requesterName: '',
+    requesterDept: userDept ?? '',
+    requesterName: user ?? '',
     responsibleName: '',
     responsibleDept: 'IT',
     responsibleTeam: '',
-    ticketStatus: '',
+    ticketStatus: 'Open',
     ticketSlaStatus: '',
     loggedTime: '',
     closedBy: '',
@@ -40,7 +47,17 @@ const UserDashboard = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    setIsSubmitting(true); // start submitting state
+
+    const now = new Date().toISOString(); // current ISO timestamp
+
     const formData = new FormData();
+   
+    const updatedTicketData = {
+      ...ticketData,
+      loggedTime: now, // set the current time
+    };
+
     formData.append('ticket', JSON.stringify(ticketData));
 
     files.forEach((file) => {
@@ -55,8 +72,8 @@ const UserDashboard = () => {
 
     console.log(Object.keys(ticketData))
     const url = 'https://reportpool.alphamorganbank.com:8443/api/tickets'; // Replace with actual URL
-    const username = 'sammyuser';
-    const password = 'Alpha1234$';
+    const username = 'Alphadeskuser';
+    const password = 'Qwerty1234';
     const basicAuth = 'Basic ' + btoa(`${username}:${password}`);
 
     try {
@@ -73,7 +90,7 @@ const UserDashboard = () => {
       }
 
       const data = await response;
-      alert("Successfully")
+      alert("Ticket Submitted Successfully")
       console.log('Success:', data);
     } catch (error) {
       console.error('Error:', error);
@@ -95,14 +112,61 @@ const UserDashboard = () => {
   };
 
   const handleDelete = (id: any) => {
-
   }
+
+
+
+  useEffect(() => {
+    const fetchTickets = async () => {
+      if (!ticketData.requesterName) return; // Only fetch if requesterName is filled
+
+      const username = 'Alphadeskuser';
+      const password = 'Qwerty1234';
+      const basicAuth = 'Basic ' + btoa(`${username}:${password}`);
+
+      try {
+        const response = await axios.get(
+          'https://reportpool.alphamorganbank.com:8443/api/tickets',
+          {
+            headers: {
+              Authorization: basicAuth,
+            },
+          }
+        );
+
+        // Filter tickets by requesterName
+        const userTickets = (response.data as Incident[]).filter(
+          (ticket) => (ticket as any).requesterName?.toLowerCase() === ticketData.requesterName.toLowerCase()
+        );
+
+
+        settickets(userTickets);
+      } catch (error) {
+        console.error('Failed to fetch tickets:', error);
+      }
+    };
+
+    fetchTickets();
+
+    // Poll every 15 seconds
+    const interval = setInterval(fetchTickets, 15000);
+
+    return () => clearInterval(interval);
+
+    fetchTickets();
+  }, [ticketData.requesterName]); // Refetch if requesterName changes
+
+
+
+  //GET USER NAME
+
+
 
   return (
     <DashboardLayout>
       {/* Header */}
       <div>
-        <h1 className='font-[poppins] font-semibold'>Hello, User</h1>
+        <h1 className='font-[poppins] font-semibold'>Hello, {user}</h1>
       </div>
 
       {/* Status Cards */}
@@ -110,7 +174,7 @@ const UserDashboard = () => {
         <div className="bg-white shadow-md hover:shadow-lg p-6 border border-gray-100 rounded-lg">
           <h3 className="mb-2 font-semibold text-gray-500 text-sm uppercase">Pending Reports</h3>
           <p className="font-bold text-orange-500 text-3xl">
-            {tickets.filter(i => i.status === 'Open' || i.ticketStatus === 'Open').length}
+            {tickets.filter(i => i.status === 'Open' || i.ticketStatus === 'Open' || i.ticketStatus === '').length}
           </p>
         </div>
 
@@ -172,16 +236,16 @@ const UserDashboard = () => {
               name="requesterName"
               value={ticketData.requesterName}
               onChange={handleChange}
-
+              disabled
             />
           </div>
           <div className="w-full md:w-1/2">
             <InputField
-              label="Requester Department *"
+              label="Requester Department"
               name="requesterDept"
               value={ticketData.requesterDept}
               onChange={handleChange}
-
+              disabled
             />
           </div>
         </div>
@@ -202,6 +266,7 @@ const UserDashboard = () => {
               name="responsibleDept"
               value={ticketData.responsibleDept}
               onChange={handleChange}
+              disabled
             />
           </div>
         </div>
@@ -215,13 +280,13 @@ const UserDashboard = () => {
         />
 
         {/* Closure Comment */}
-        <TextAreaField
+        {/* <TextAreaField
           label="Additional Comments"
           name="closureComment"
           value={ticketData.closureComment}
           onChange={handleChange}
           placeholder="Optional additional information..."
-        />
+        /> */}
 
         {/* File Upload */}
         <div className="mb-4">

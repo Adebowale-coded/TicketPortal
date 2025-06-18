@@ -48,8 +48,14 @@ const Signin = () => {
             console.log("USER INFO:", userData);
 
             if (userData?.department?.toLowerCase().includes("it")) {
+                localStorage.setItem('role', 'admin')
+                localStorage.setItem('username', credentials.username)
+                localStorage.setItem('dept', userData?.department)
                 navigate("/admin");
             } else {
+                localStorage.setItem('role', 'user')
+                localStorage.setItem('username', credentials.username)
+                localStorage.setItem('dept', userData?.department)
                 navigate("/userdashboard");
             }
 

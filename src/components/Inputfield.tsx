@@ -9,7 +9,7 @@ interface Props extends React.InputHTMLAttributes<HTMLInputElement>{
     placeholder?: string;
 };
 
-const InputField = ({ label, name, value, onChange, type = "text", placeholder }: Props) => (
+const InputField = ({ label, name, value, onChange, type = "text", placeholder, ...props }: Props) => (
     <div className="mb-4">
         <label htmlFor={name} className="block mb-2 font-medium text-gray-700">
             {label}
@@ -22,7 +22,7 @@ const InputField = ({ label, name, value, onChange, type = "text", placeholder }
             onChange={onChange}
             placeholder={placeholder}
             required
-            disabled={name === 'responsibleDept' ? true : false}
+            {...props}
             className="w-full border border-gray-300 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
         />
     </div>
