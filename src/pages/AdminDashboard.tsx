@@ -25,8 +25,14 @@ interface Props {
 
 const AdminDashboard = () => {
   const [displayName, setDisplayName] = useState("");
-  const username = localStorage.getItem("username");
+  const closedName = localStorage.getItem("username");
   const [reports, setReports] = useState<Props[]>([]);
+
+  const [update, setUpdate] = useState({
+    closureComment: '',
+    ticketStatus: ''
+  })
+
 
 
   useEffect(() => {
@@ -49,8 +55,8 @@ const AdminDashboard = () => {
         const enrichedData = response.data.map((ticket: Props) => ({
           ...ticket,
           updatedStatus: ticket.ticketStatus || "Pending", // Fallback if status is null
-          comment: ticket.closureComment || ""
-
+          comment: ticket.closureComment || "",
+          closedBy: ticket.closedBy || ""
         }));
 
 
@@ -95,15 +101,16 @@ const AdminDashboard = () => {
   };
 
 
-  const handleUpdate = async (index: number) => {
-    const updatedReport = reports[index];
+  const handleUpdate = async (prevData: Props) => {
     const username = 'Alphadeskuser';
     const password = 'Qwerty1234';
     const basicAuth = 'Basic ' + btoa(`${username}:${password}`);
     try {
-      await axios.put(`https://reportpool.alphamorganbank.com:8443/api/tickets/${updatedReport.id}`, {
-        status: updatedReport.updatedStatus,
-        comment: updatedReport.comment,
+      await axios.put(`https://reportpool.alphamorganbank.com:8443/api/tickets`, {
+        ...prevData,
+        ...update,
+        closedBy:closedName,
+        closureTime:new Date().toISOString().slice(0, 19)
       }, {
         headers: {
           Authorization: basicAuth,
@@ -117,11 +124,17 @@ const AdminDashboard = () => {
   };
 
 
+  // MOdal
+  const [selectedTicket, setSelectedTicket] = useState<Props | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+
+
   return (
     <DashboardLayout>
       <h1 className="font-bold text-blue-600 text-2xl">Admin</h1>
       <p className="mt-4 text-gray-700">
-        Welcome, <span className="font-semibold">{user}</span>. Here’s a list of all requests raised against your team.
+        Welcome, <span className="font-semibold">{user}</span>. Here's a list of all requests raised against your team.
       </p>
 
       <div className="mt-8">
@@ -143,9 +156,8 @@ const AdminDashboard = () => {
                 <th className="px-4 py-3">Responsible Person</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Logged Time</th>
-                {/* <th className="px-4 py-3">Closed By</th> */}
+                <th className="px-4 py-3">Closed By</th>
                 <th className="px-4 py-3">Comment</th>
-                <th className="px-4 py-3">Update Status</th>
                 <th className="px-4 py-3">Action</th>
               </tr>
             </thead>
@@ -165,8 +177,17 @@ const AdminDashboard = () => {
                   <td className="px-4 py-3 break-words whitespace-normal">{report.responsibleName}</td>
                   <td className="px-4 py-3 break-words whitespace-normal">{report.ticketStatus}</td>
                   <td className="px-4 py-3 break-words whitespace-normal"> {report.loggedTime ? new Date(report.loggedTime).toLocaleString() : "N/A"}</td>
-                  {/* <td className="px-4 py-3">{report.closedBy}</td> */}
+                  <td className="px-4 py-3">
+                    <input
+                      type="text"
+                      placeholder="Enter Closed By"
+                      value={report.closedBy}
+                      onChange={(e) => handleInputChange(index, "closedBy", e.target.value)}
+                      className="px-2 py-1 border rounded w-full"
+                    /></td>
                   {/* <td className="px-4 py-3">{report.comment}</td> */}
+
+
                   <td className="px-4 py-3 break-words whitespace-normal">
                     <input
                       type="text"
@@ -177,25 +198,17 @@ const AdminDashboard = () => {
 
                     />
                   </td>
-                  <td className="px-4 py-3 break-words whitespace-normal">
-                    <select
-                      defaultValue={report.updatedStatus}
-                      onChange={(e) => handleInputChange(index, "updatedStatus", e.target.value)}
-                      className="px-2 py-1 border rounded w-full"
-                    >
-                      <option value="Pending">Pending</option>
-                      <option value="In Progress">In Progress</option>
-                      <option value="Resolved">Resolved</option>
-                      <option value="Closed">Closed</option>
-                    </select>
-                  </td>
+                 
 
                   <td className="px-4 py-3">
                     <button
-                      onClick={() => handleUpdate(index)}
+                      onClick={() => {
+                        setSelectedTicket(report);
+                        setIsModalOpen(true);
+                      }}
                       className="bg-orange-500 hover:bg-orange-400 px-3 py-1 rounded text-white"
                     >
-                      Update
+                      View
                     </button>
                   </td>
                 </tr>
@@ -233,10 +246,89 @@ const AdminDashboard = () => {
         </div>
 
 
+        {isModalOpen && selectedTicket && (
+          <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center z-50">
+            <div className="bg-white/95 backdrop-blur-md w-full max-w-lg rounded-xl shadow-2xl border border-white/20 p-6 space-y-4 relative mx-4">
+              <button
+                className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-red-100 text-gray-600 hover:text-red-500 transition-colors duration-200"
+                onClick={() => setIsModalOpen(false)}
+              >
+                ✕
+              </button>
+
+              <h2 className="text-xl font-bold mb-4 text-gray-800 pr-8">Update Ticket</h2>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                  <p className="text-gray-800 bg-gray-50 rounded-md px-3 py-2 border">{selectedTicket.title}</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <p className="text-gray-800 bg-gray-50 rounded-md px-3 py-2 border min-h-[60px]">{selectedTicket.ticketDescription}</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                  <span className="inline-block bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-semibold">
+                    {selectedTicket.ticketPriority}
+                  </span>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Comment</label>
+                  <input
+                    type="text"
+                    value={update.closureComment}
+                    onChange={(e) =>
+                      setUpdate({ ...update, closureComment: e.target.value })
+                    }
+                    className="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                    placeholder="Enter your comment..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <select
+                    value={update.ticketStatus}
+                    onChange={(e) =>
+                      setUpdate({ ...update, ticketStatus: e.target.value })
+                    }
+                    className="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                  >
+                    <option value="Pending">Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Resolved">Resolved</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="pt-4 flex justify-end space-x-3">
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleUpdate(selectedTicket)}
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-md transition-colors duration-200 shadow-md hover:shadow-lg"
+                >
+                  Confirm Update
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+
+
       </div>
 
 
-      <div className="pt-[20px]">
+      {/* <div className="pt-[20px]">
         <h2 className="font-bold text-[20px]">Incidence Report</h2>
         <div className="bg-white shadow-sm mt-4 p-6 border rounded max-w-4xl">
           <form
@@ -306,7 +398,7 @@ const AdminDashboard = () => {
           </form>
         </div>
 
-      </div>
+      </div> */}
     </DashboardLayout>
   );
 };

@@ -4,6 +4,8 @@ import Settings from '../assets/imgs/Settings.png';
 import User from '../assets/imgs/User.png';
 import Admin from '../assets/imgs/Admin.png';
 import Menubtn from '../assets/imgs/Menubtn.png';
+import ticketicon from '../assets/imgs/ticket.png';
+import Incidenceicon from '../assets/imgs/Audit.png'
 
 type SidebarProps = {
   isOpen: boolean;
@@ -50,7 +52,7 @@ const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
           {role === 'user' && (
             <li>
               <Link to="/raiseticket" className="flex items-center gap-3 hover:bg-orange-500 px-4 py-2 rounded transition-colors duration-200">
-                <img src={User} alt="Raise Ticket" className="w-5 h-5" />
+                <img src={Incidenceicon} alt="Raise Ticket" className="w-5 h-5" />
                 <span>Raise Ticket</span>
               </Link>
             </li>
@@ -66,7 +68,7 @@ const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
               </li>
               <li>
                 <Link to="/Tickets" className="flex items-center gap-3 hover:bg-orange-500 px-4 py-2 rounded transition-colors duration-200">
-                  <img src={Admin} alt="Tickets" className="w-5 h-5" />
+                  <img src={ticketicon} alt="Tickets" className="w-5 h-5" />
                   <span>Tickets</span>
                 </Link>
               </li>
