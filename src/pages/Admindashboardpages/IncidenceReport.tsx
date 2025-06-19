@@ -1,141 +1,88 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../layouts/Dashboardlayouts';
-import InputField from '../../components/Inputfield';
-import TextAreaField from '../../components/Textarea';
-import SelectField from '../../components/Selectfield';
+import IncidenceReportForm from '..//../components/IncidenceReportForm'; // this will be your current form component
 
-const IncidenceReport = () => {
-  const [incidentData, setIncidentData] = useState({
-    title: '',
-    incidentDescription: '',
-    reportedBy: '',
-    incidentDate: '',
-    incidentStatus: '',
-    incidentCategory: '',
-    resolutionNotes: '',
-    resolvedAt: '',
-    loggedTime: '',
-    closedBy: '',
-    closureTime: '',
-    incidentPriority: ''
-  });
+const IncidencePage = () => {
+  const [showModal, setShowModal] = useState(false);
+  const [reports, setReports] = useState([]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const url = 'https://reportpool.alphamorganbank.com:8443/api/incident'; // Replace with actual URL
-    const username = 'sammyuser';
-    const password = 'Alpha1234$';
+  const fetchReports = async () => {
+    const username = 'Alphadeskuser';
+    const password = 'Qwerty1234';
     const basicAuth = 'Basic ' + btoa(`${username}:${password}`);
-
     try {
-      const response = await fetch(url, {
-        method: 'POST',
+      const response = await fetch('https://reportpool.alphamorganbank.com:8443/api/incidents', {
         headers: {
           'Authorization': basicAuth,
-        },
-        body: JSON.stringify({ incident: incidentData }),
+        }
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response;
-      alert("Successfully")
-      console.log('Success:', data);
+      const data = await response.json();
+      setReports(data);
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Fetch error:", error);
     }
-  }
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setIncidentData({
-      ...incidentData,
-      [e.target.name]: e.target.value,
-    });
   };
 
+  useEffect(() => {
+    fetchReports();
+  }, []);
 
   return (
     <DashboardLayout>
-      <div className="bg-white shadow-sm mx-auto mt-6 p-6 border border-gray-200 rounded-md max-w-full">
-        <h2 className="mb-4 font-semibold text-xl">Submit Incidence Report</h2>
-
-        <form className="space-y-5" onSubmit={handleSubmit}>
-          <InputField
-            label="Ticket Title *"
-            name="title"
-            value={incidentData.title}
-            onChange={handleChange}
-            placeholder="Brief title of the incident"
-          />
-
-          <TextAreaField
-            label="Incident Description *"
-            name="incidentDescription"
-            value={incidentData.incidentDescription}
-            onChange={handleChange}
-            placeholder="Detailed description of the incident"
-          />
-
-          <InputField
-            label="Reported By *"
-            name="reportedBy"
-            value={incidentData.reportedBy}
-            onChange={handleChange}
-            placeholder="Full name or email of the reporter"
-          />
-
-          <InputField
-            label="Incident Date"
-            name="incidentDate"
-            type="date"
-            value={incidentData.incidentDate}
-            onChange={handleChange}
-          />
-
-          <SelectField
-            label="Incident Status"
-            name="incidentStatus"
-            value={incidentData.incidentStatus}
-            onChange={handleChange}
-            options={['Open', 'In Progress', 'Closed']}
-          />
-
-          <InputField
-            label="Incident Category"
-            name="incidentCategory"
-            value={incidentData.incidentCategory}
-            onChange={handleChange}
-            placeholder="e.g., Network, Software, Hardware"
-          />
-
-          <InputField
-            label="Resolution Notes"
-            name="resolutionNotes"
-            value={incidentData.resolutionNotes}
-            onChange={handleChange}
-            placeholder="Steps taken to resolve the incident"
-          />
-
-          <SelectField
-            label="Priority *"
-            name="incidentPriority"
-            value={incidentData.incidentPriority}
-            onChange={handleChange}
-            options={['Low', 'Medium', 'High']}
-          />
-
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Incidence Reports</h2>
           <button
-            type="submit"
-            className="bg-green-600 hover:bg-green-700 px-5 py-2 rounded text-white transition"
+            onClick={() => setShowModal(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
           >
-            Submit Report
+            New Incidence Report
           </button>
-        </form>
+        </div>
+
+        {/* Modal */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div className="bg-white p-6 rounded-lg w-full max-w-2xl shadow-lg relative">
+              <button
+                onClick={() => setShowModal(false)}
+                className="absolute top-3 right-4 text-gray-600 hover:text-black text-lg"
+              >
+                &times;
+              </button>
+              <IncidenceReportForm onSuccess={() => { setShowModal(false); fetchReports(); }} />
+            </div>
+          </div>
+        )}
+
+        {/* Reports Table */}
+        <div className="overflow-x-auto mt-6">
+          <table className="w-full text-left border rounded bg-white">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="px-4 py-2">Title</th>
+                <th className="px-4 py-2">Description</th>
+                <th className="px-4 py-2">Status</th>
+                <th className="px-4 py-2">Priority</th>
+                <th className="px-4 py-2">Reported By</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reports.map((report: any, idx) => (
+                <tr key={idx} className="border-t">
+                  <td className="px-4 py-2">{report.title}</td>
+                  <td className="px-4 py-2">{report.incidentDescription}</td>
+                  <td className="px-4 py-2">{report.incidentStatus}</td>
+                  <td className="px-4 py-2">{report.incidentPriority}</td>
+                  <td className="px-4 py-2">{report.reportedBy}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </DashboardLayout>
   );
 };
 
-export default IncidenceReport;
+export default IncidencePage;

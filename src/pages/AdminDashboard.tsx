@@ -109,8 +109,8 @@ const AdminDashboard = () => {
       await axios.put(`https://reportpool.alphamorganbank.com:8443/api/tickets`, {
         ...prevData,
         ...update,
-        closedBy:closedName,
-        closureTime:new Date().toISOString().slice(0, 19)
+        closedBy: closedName,
+        closureTime: new Date().toISOString().slice(0, 19)
       }, {
         headers: {
           Authorization: basicAuth,
@@ -132,10 +132,91 @@ const AdminDashboard = () => {
 
   return (
     <DashboardLayout>
-      <h1 className="font-bold text-blue-600 text-2xl">Admin</h1>
+      <h1 className="font-bold text-black-600 text-2xl">Admin</h1>
       <p className="mt-4 text-gray-700">
         Welcome, <span className="font-semibold">{user}</span>. Here's a list of all requests raised against your team.
       </p>
+
+      {/* CARDS CARDS */}{/* CARDS CARDS */}{/* CARDS CARDS */}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+        <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-10 translate-x-10"></div>
+          <div className="flex justify-between items-start mb-4 relative z-10">
+            <div>
+              <h3 className="text-sm font-medium opacity-90">Total Projects</h3>
+              <p className="text-3xl font-bold mt-2">24</p>
+            </div>
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/30 transition-colors duration-200">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </div>
+          </div>
+          <div className="flex items-center text-sm opacity-90">
+            <span className="mr-2">📈</span>
+            <span>Increased from last month</span>
+          </div>
+        </div>
+
+        <div className="bg-white border border-gray-200 p-6 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-blue-50 rounded-full -translate-y-10 translate-x-10 group-hover:bg-blue-100 transition-colors duration-300"></div>
+          <div className="flex justify-between items-start mb-4 relative z-10">
+            <div>
+              <h3 className="text-sm font-medium text-gray-600 group-hover:text-blue-600 transition-colors duration-200">Ended Projects</h3>
+              <p className="text-3xl font-bold mt-2 text-gray-800 group-hover:text-blue-700 transition-colors duration-200">10</p>
+            </div>
+            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-blue-200 transition-colors duration-200">
+              <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+            </div>
+          </div>
+          <div className="flex items-center text-sm text-gray-500 group-hover:text-blue-500 transition-colors duration-200">
+            <span className="mr-2">✅</span>
+            <span>Completed successfully</span>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-10 translate-x-10"></div>
+          <div className="flex justify-between items-start mb-4 relative z-10">
+            <div>
+              <h3 className="text-sm font-medium opacity-90">Running Projects</h3>
+              <p className="text-3xl font-bold mt-2">12</p>
+            </div>
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/30 transition-colors duration-200">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+              </svg>
+            </div>
+          </div>
+          <div className="flex items-center text-sm opacity-90">
+            <span className="mr-2">⚡</span>
+            <span>Currently in progress</span>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-amber-500 to-orange-500 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-10 translate-x-10"></div>
+          <div className="flex justify-between items-start mb-4 relative z-10">
+            <div>
+              <h3 className="text-sm font-medium opacity-90">Pending Projects</h3>
+              <p className="text-3xl font-bold mt-2">2</p>
+            </div>
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/30 transition-colors duration-200">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+            </div>
+          </div>
+          <div className="flex items-center text-sm opacity-90">
+            <span className="mr-2">💬</span>
+            <span>On Discussion</span>
+          </div>
+        </div>
+      </div>
+      {/* END OF CARD */}{/* END OF CARD */}{/* END OF CARD */}
 
       <div className="mt-8">
         <div className="pb-[10px]">
@@ -176,29 +257,38 @@ const AdminDashboard = () => {
                   <td className="px-4 py-3 break-words whitespace-normal">{report.responsibleTeam}</td>
                   <td className="px-4 py-3 break-words whitespace-normal">{report.responsibleName}</td>
                   <td className="px-4 py-3 break-words whitespace-normal">{report.ticketStatus}</td>
-                  <td className="px-4 py-3 break-words whitespace-normal"> {report.loggedTime ? new Date(report.loggedTime).toLocaleString() : "N/A"}</td>
-                  <td className="px-4 py-3">
-                    <input
-                      type="text"
-                      placeholder="Enter Closed By"
-                      value={report.closedBy}
-                      onChange={(e) => handleInputChange(index, "closedBy", e.target.value)}
-                      className="px-2 py-1 border rounded w-full"
-                    /></td>
+                  <td className="px-4 py-3 break-words whitespace-normal">{report.loggedTime ? new Date(report.loggedTime).toLocaleString() : "N/A"}</td>
+                  <td className="px-4 py-3 break-words whitespace-normal">
+                    {report.closedBy
+                      ? (
+                        <span>
+                          {report.closedBy
+                            .split('.')
+                            .map(name => name.charAt(0).toUpperCase() + name.slice(1).toLowerCase())
+                            .join(' ')
+                          }
+                        </span>
+                      )
+                      : <span className="italic text-gray-400">Not specified</span>}
+                  </td>
+
                   {/* <td className="px-4 py-3">{report.comment}</td> */}
 
 
-                  <td className="px-4 py-3 break-words whitespace-normal">
+                  {/* <td className="px-4 py-3 break-words whitespace-normal">
                     <input
                       type="text"
                       placeholder="Enter comment"
                       value={report.comment} // <-- this ensures it's synced with state
                       onChange={(e) => handleInputChange(index, "comment", e.target.value)}
                       className="px-2 py-1 border rounded w-full"
-
                     />
+                  </td> */}
+                  <td className="px-4 py-3 break-words whitespace-normal">
+                    {report.comment
+                      ? <span>{report.comment}</span>
+                      : <span className="italic text-gray-400">No comment</span>}
                   </td>
-                 
 
                   <td className="px-4 py-3">
                     <button
