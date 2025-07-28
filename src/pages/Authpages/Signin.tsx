@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../../assets/imgs/logo.png";
+import Tableimg from "../../assets/imgs/tableimg.jpg"
 
 const Signin = () => {
     const [credentials, setCredentials] = useState({ username: "", password: "" });
@@ -8,7 +9,7 @@ const Signin = () => {
     const navigate = useNavigate();
 
     const BASE_URL = "https://reportpool.alphamorganbank.com:8443/api";
-    const BasicAuth = { username: "alphadeskuser", password: "Qwerty1234" }; 
+    const BasicAuth = { username: "alphadeskuser", password: "Qwerty1234" };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -119,16 +120,28 @@ const Signin = () => {
                 </div>
             </div>
 
-            {/* Right Column */}
-            <div className="hidden md:flex w-1/2 h-[100vh] bg-orange-500 flex-col items-center justify-center text-white p-8">
-                <div className="text-center max-w-sm">
-                    <p className="text-lg italic">
-                        "ALPHA DESK helps teams stay organized, track tasks, and get things done efficiently — all in one place."
-                    </p>
-                    <p className="mt-4 font-semibold">Powered by ALPHA DESK</p>
-                    <p className="text-sm">Smart. Simple. Seamless.</p>
+            {/* Right Column with Background Image and Orange Overlay */}
+            <div
+                className="hidden md:flex w-1/2 h-[100vh] relative overflow-hidden"
+                style={{ backgroundImage: `url(${Tableimg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+                role="img"
+                aria-label="Professional workspace background for incident reporting"
+            >
+                {/* Orange Overlay */}
+                <div className="absolute inset-0 bg-orange-600 opacity-70 z-0" />
+
+                {/* Text Content */}
+                <div className="relative z-10 flex flex-col items-center justify-center text-white p-8 text-center max-w-md mx-auto">
+                    <blockquote className="text-lg md:text-xl italic leading-relaxed">
+                        "ALPHA DESK provides comprehensive incident management from initial reporting to final resolution — empowering teams to respond faster and prevent future incidents."
+                    </blockquote>
+                    <div className="mt-6 space-y-2">
+                        <p className="font-semibold text-base">Powered by ALPHA DESK</p>
+                        <p className="text-sm opacity-90">Manage. Respond. Prevent.</p>
+                    </div>
                 </div>
             </div>
+
         </div>
     );
 };

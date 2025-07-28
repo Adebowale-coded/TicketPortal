@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import DashboardLayout from "../layouts/Dashboardlayouts";
+import ReassignDropdown from "../components/ReassignDropdown";
 import axios from "axios";
 
 interface Props {
@@ -24,16 +25,17 @@ interface Props {
 }
 
 const AdminDashboard = () => {
+  const [submitted, setSubmitted] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const closedName = localStorage.getItem("username");
   const [reports, setReports] = useState<Props[]>([]);
 
+  // Updated state object with assignedTo field
   const [update, setUpdate] = useState({
     closureComment: '',
-    ticketStatus: ''
+    ticketStatus: '',
+    assignedTo: ''  // Add this field for reassignment
   })
-
-
 
   useEffect(() => {
     const fetchTickets = async () => {
@@ -50,7 +52,6 @@ const AdminDashboard = () => {
           }
         );
 
-
         // Add default editable fields to each ticket
         const enrichedData = response.data.map((ticket: Props) => ({
           ...ticket,
@@ -59,28 +60,23 @@ const AdminDashboard = () => {
           closedBy: ticket.closedBy || ""
         }));
 
-
         setReports(enrichedData); // Log actual data
       } catch (error) {
         console.error("Failed to fetch tickets:", error);
       }
     };
 
-
     fetchTickets();
   }, []);
 
   //GET USER NAME
-
   const rawUser = localStorage.getItem('username') || '';
   const user = rawUser
     .split('.')
     .map(namePart => namePart.charAt(0).toUpperCase() + namePart.slice(1))
     .join(' ');
 
-
   //PAGENATION STATE //PAGENATION STATE //PAGENATION STATE 
-
   const [currentPage, setCurrentPage] = useState(1);
   const reportsPerPage = 10;
 
@@ -92,14 +88,11 @@ const AdminDashboard = () => {
   // Total pages
   const totalPages = Math.ceil(reports.length / reportsPerPage);
 
-
-
   const handleInputChange = (index: number, field: keyof Props | "comment" | "updatedStatus", value: string) => {
     const updatedReports = [...reports];
     updatedReports[index][field] = value;
     setReports(updatedReports);
   };
-
 
   const handleUpdate = async (prevData: Props) => {
     const username = 'Alphadeskuser';
@@ -110,24 +103,29 @@ const AdminDashboard = () => {
         ...prevData,
         ...update,
         closedBy: closedName,
+        responsibleName: update.assignedTo || prevData.responsibleName,
         closureTime: new Date().toISOString().slice(0, 19)
       }, {
         headers: {
           Authorization: basicAuth,
         },
       });
-      alert("Update successful!");
+      setShowSuccessModal(true); // Show success modal
+
+      // Auto-close modal after 3 seconds
+      setTimeout(() => setShowSuccessModal(false), 3000);
+      setSubmitted(true);
+      setIsModalOpen(false);
     } catch (error: any) {
       console.error("Update failed:", error.response?.data || error.message);
       alert("Update failed.");
     }
   };
 
-
   // MOdal
   const [selectedTicket, setSelectedTicket] = useState<Props | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
 
   return (
@@ -139,13 +137,14 @@ const AdminDashboard = () => {
 
       {/* CARDS CARDS */}{/* CARDS CARDS */}{/* CARDS CARDS */}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
-        <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer relative overflow-hidden">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mt-6">
+        {/* Total Projects */}
+        <div className="bg-gradient-to-br from-orange-500 to-orange-400 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer relative overflow-hidden">
           <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-10 translate-x-10"></div>
           <div className="flex justify-between items-start mb-4 relative z-10">
             <div>
-              <h3 className="text-sm font-medium opacity-90">Total Projects</h3>
-              <p className="text-3xl font-bold mt-2">24</p>
+              <h3 className="text-sm font-medium opacity-90">Total Tickets</h3>
+              <p className="text-3xl font-bold mt-2">{reports.length}</p>
             </div>
             <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/30 transition-colors duration-200">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -159,12 +158,20 @@ const AdminDashboard = () => {
           </div>
         </div>
 
+        {/* Ended Projects (Resolved or Closed) */}
         <div className="bg-white border border-gray-200 p-6 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-20 h-20 bg-blue-50 rounded-full -translate-y-10 translate-x-10 group-hover:bg-blue-100 transition-colors duration-300"></div>
           <div className="flex justify-between items-start mb-4 relative z-10">
             <div>
-              <h3 className="text-sm font-medium text-gray-600 group-hover:text-blue-600 transition-colors duration-200">Ended Projects</h3>
-              <p className="text-3xl font-bold mt-2 text-gray-800 group-hover:text-blue-700 transition-colors duration-200">10</p>
+              <h3 className="text-sm font-medium text-gray-600 group-hover:text-blue-600 transition-colors duration-200">Ended Tickets</h3>
+              <p className="text-3xl font-bold mt-2 text-gray-800 group-hover:text-blue-700 transition-colors duration-200">
+                {
+                  reports.filter(r =>
+                    r.ticketStatus?.toLowerCase() === 'resolved' ||
+                    r.ticketStatus?.toLowerCase() === 'closed'
+                  ).length
+                }
+              </p>
             </div>
             <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-blue-200 transition-colors duration-200">
               <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
@@ -178,12 +185,19 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer relative overflow-hidden">
+        {/* Running Projects */}
+        {/* <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer relative overflow-hidden">
           <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-10 translate-x-10"></div>
           <div className="flex justify-between items-start mb-4 relative z-10">
             <div>
               <h3 className="text-sm font-medium opacity-90">Running Projects</h3>
-              <p className="text-3xl font-bold mt-2">12</p>
+              <p className="text-3xl font-bold mt-2">
+                {
+                  reports.filter(r =>
+                    r.ticketStatus?.toLowerCase() === 'in progress'
+                  ).length
+                }
+              </p>
             </div>
             <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/30 transition-colors duration-200">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -195,14 +209,21 @@ const AdminDashboard = () => {
             <span className="mr-2">⚡</span>
             <span>Currently in progress</span>
           </div>
-        </div>
+        </div> */}
 
-        <div className="bg-gradient-to-br from-amber-500 to-orange-500 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer relative overflow-hidden">
+        {/* Pending Projects */}
+        {/* <div className="bg-gradient-to-br from-amber-500 to-orange-500 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer relative overflow-hidden">
           <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-10 translate-x-10"></div>
           <div className="flex justify-between items-start mb-4 relative z-10">
             <div>
               <h3 className="text-sm font-medium opacity-90">Pending Projects</h3>
-              <p className="text-3xl font-bold mt-2">2</p>
+              <p className="text-3xl font-bold mt-2">
+                {
+                  reports.filter(r =>
+                    r.ticketStatus?.toLowerCase() === 'pending' || !r.ticketStatus
+                  ).length
+                }
+              </p>
             </div>
             <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/30 transition-colors duration-200">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -214,8 +235,9 @@ const AdminDashboard = () => {
             <span className="mr-2">💬</span>
             <span>On Discussion</span>
           </div>
-        </div>
+        </div> */}
       </div>
+
       {/* END OF CARD */}{/* END OF CARD */}{/* END OF CARD */}
 
       <div className="mt-8">
@@ -223,45 +245,79 @@ const AdminDashboard = () => {
           <h2 className="font-bold text-[20px]">Ticketing</h2>
         </div>
 
-        <div className="shadow border rounded-lg overflow-x-auto max-w-[1200px] ">
-          <table className="bg-white min-w-full table-fixed ">
-            <thead className="bg-gray-100 font-semibold text-gray-600 text-sm text-left">
+        <div className="shadow-lg border rounded-lg overflow-x-auto max-w-[1200px] bg-white">
+          <table className="bg-white min-w-full table-fixed">
+            <thead className="bg-gradient-to-r from-gray-100 to-gray-200 font-semibold text-gray-700 text-sm text-left">
               <tr>
-                <th className="px-4 py-3">S/N</th> {/* 👈 New Column */}
-                <th className="px-4 py-3">Title</th>
-                <th className="px-4 py-3">Description</th>
-                <th className="px-4 py-3">Priority</th>
-                <th className="px-4 py-3">Requester Dept</th>
-                <th className="px-4 py-3">Requester</th>
-                <th className="px-4 py-3">Team</th>
-                <th className="px-4 py-3">Responsible Person</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Logged Time</th>
-                <th className="px-4 py-3">Closed By</th>
-                <th className="px-4 py-3">Comment</th>
-                <th className="px-4 py-3">Action</th>
+                <th className="px-4 py-4 border-b-2 border-gray-300">Ticket ID</th>
+                <th className="px-4 py-4 border-b-2 border-gray-300">Title</th>
+                <th className="px-4 py-4 border-b-2 border-gray-300">Description</th>
+                <th className="px-4 py-4 border-b-2 border-gray-300">Priority</th>
+                <th className="px-4 py-4 border-b-2 border-gray-300">Requester Dept</th>
+                <th className="px-4 py-4 border-b-2 border-gray-300">Requester</th>
+                <th className="px-4 py-4 border-b-2 border-gray-300">Responsible Team</th>
+                <th className="px-4 py-4 border-b-2 border-gray-300">Status</th>
+                <th className="px-4 py-4 border-b-2 border-gray-300">Logged Time</th>
+                <th className="px-4 py-4 border-b-2 border-gray-300">Closed By</th>
+                <th className="px-4 py-4 border-b-2 border-gray-300">Comment</th>
+                <th className="px-4 py-4 border-b-2 border-gray-300">Action</th>
               </tr>
             </thead>
             <tbody className="text-gray-800 text-sm">
               {currentReports.map((report, index) => (
-                <tr key={report.id} className="even:bg-gray-50 border-t">
-                  <td className="px-4 py-3 break-words whitespace-normal">
-                    {((currentPage - 1) * reportsPerPage) + index + 1}
+                <tr key={report.id} className="even:bg-gray-50 hover:bg-blue-50 transition-colors duration-200 border-b border-gray-200">
+                  <td className="px-4 py-4 break-words whitespace-normal font-medium text-gray-600">
+                    {report.id}
                   </td>
 
-                  <td className="px-4 py-3 break-words whitespace-normal">{report.title}</td>
-                  <td className="px-4 py-3 break-words whitespace-normal">{report.ticketDescription}</td>
-                  <td className="px-4 py-3 break-words whitespace-normal font-medium text-orange-600">{report.ticketPriority}</td>
-                  <td className="px-4 py-3 break-words whitespace-normal">{report.requesterDept}</td>
-                  <td className="px-4 py-3 break-words whitespace-normal">{report.requesterName}</td>
-                  <td className="px-4 py-3 break-words whitespace-normal">{report.responsibleTeam}</td>
-                  <td className="px-4 py-3 break-words whitespace-normal">{report.responsibleName}</td>
-                  <td className="px-4 py-3 break-words whitespace-normal">{report.ticketStatus}</td>
-                  <td className="px-4 py-3 break-words whitespace-normal">{report.loggedTime ? new Date(report.loggedTime).toLocaleString() : "N/A"}</td>
-                  <td className="px-4 py-3 break-words whitespace-normal">
+                  <td className="px-4 py-4 break-words whitespace-normal font-medium text-gray-900">{report.title}</td>
+                  <td className="px-4 py-4 break-words whitespace-normal text-gray-700">{report.ticketDescription}</td>
+                  <td className="px-4 py-4 break-words whitespace-normal">
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${report.ticketPriority?.toLowerCase() === 'high' || report.ticketPriority?.toLowerCase() === 'urgent'
+                      ? 'bg-red-100 text-red-800'
+                      : report.ticketPriority?.toLowerCase() === 'medium'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-green-100 text-green-800'
+                      }`}>
+                      {report.ticketPriority}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4 break-words whitespace-normal text-gray-700">{report.requesterDept}</td>
+                  <td className="px-4 py-4 break-words whitespace-normal text-gray-700">{report.requesterName}</td>
+                  <td className="px-4 py-4 break-words whitespace-normal text-gray-700">
+                    {
+                      report.responsibleName?.includes("@")
+                        ? report.responsibleName
+                          .split("@")[0]
+                          .split(".")
+                          .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+                          .join(" ")
+                        : report.responsibleName
+                    }
+                  </td>
+                  <td className="px-4 py-4 break-words whitespace-normal">
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${report.ticketStatus?.toLowerCase() === 'open' || report.ticketStatus?.toLowerCase() === 'new'
+                      ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                      : report.ticketStatus?.toLowerCase() === 'in progress' || report.ticketStatus?.toLowerCase() === 'pending'
+                        ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                        : report.ticketStatus?.toLowerCase() === 'resolved' || report.ticketStatus?.toLowerCase() === 'completed'
+                          ? 'bg-green-100 text-green-800 border border-green-200'
+                          : report.ticketStatus?.toLowerCase() === 'closed'
+                            ? 'bg-gray-100 text-gray-800 border border-gray-200'
+                            : report.ticketStatus?.toLowerCase() === 'rejected' || report.ticketStatus?.toLowerCase() === 'cancelled'
+                              ? 'bg-red-100 text-red-800 border border-red-200'
+                              : 'bg-purple-100 text-purple-800 border border-purple-200'
+                      }`}>
+                      {report.ticketStatus}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4 break-words whitespace-normal text-gray-600 font-mono text-xs">
+                    {report.loggedTime ? new Date(report.loggedTime).toLocaleString() : "N/A"}
+                  </td>
+                  <td className="px-4 py-4 break-words whitespace-normal">
                     {report.closedBy
                       ? (
-                        <span>
+                        <span className="text-gray-700 font-medium">
                           {report.closedBy
                             .split('.')
                             .map(name => name.charAt(0).toUpperCase() + name.slice(1).toLowerCase())
@@ -272,31 +328,19 @@ const AdminDashboard = () => {
                       : <span className="italic text-gray-400">Not specified</span>}
                   </td>
 
-                  {/* <td className="px-4 py-3">{report.comment}</td> */}
-
-
-                  {/* <td className="px-4 py-3 break-words whitespace-normal">
-                    <input
-                      type="text"
-                      placeholder="Enter comment"
-                      value={report.comment} // <-- this ensures it's synced with state
-                      onChange={(e) => handleInputChange(index, "comment", e.target.value)}
-                      className="px-2 py-1 border rounded w-full"
-                    />
-                  </td> */}
-                  <td className="px-4 py-3 break-words whitespace-normal">
+                  <td className="px-4 py-4 break-words whitespace-normal">
                     {report.comment
-                      ? <span>{report.comment}</span>
+                      ? <span className="text-gray-700">{report.comment}</span>
                       : <span className="italic text-gray-400">No comment</span>}
                   </td>
 
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-4">
                     <button
                       onClick={() => {
                         setSelectedTicket(report);
                         setIsModalOpen(true);
                       }}
-                      className="bg-orange-500 hover:bg-orange-400 px-3 py-1 rounded text-white"
+                      className="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 px-4 py-2 rounded-md text-white font-medium transition-colors duration-200 shadow-sm hover:shadow-md"
                     >
                       View
                     </button>
@@ -338,64 +382,125 @@ const AdminDashboard = () => {
 
         {isModalOpen && selectedTicket && (
           <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center z-50">
-            <div className="bg-white/95 backdrop-blur-md w-full max-w-lg rounded-xl shadow-2xl border border-white/20 p-6 space-y-4 relative mx-4">
+            <div className="bg-white/95 backdrop-blur-md w-full max-w-lg max-h-[70vh] rounded-xl shadow-2xl border border-white/20 relative mx-4 overflow-hidden flex flex-col">
               <button
-                className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-red-100 text-gray-600 hover:text-red-500 transition-colors duration-200"
+                className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-red-100 text-gray-600 hover:text-red-500 transition-colors duration-200 z-10"
                 onClick={() => setIsModalOpen(false)}
               >
                 ✕
               </button>
 
-              <h2 className="text-xl font-bold mb-4 text-gray-800 pr-8">Update Ticket</h2>
+              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                <h2 className="text-xl font-bold mb-4 text-gray-800 pr-8">Update Ticket</h2>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                  <p className="text-gray-800 bg-gray-50 rounded-md px-3 py-2 border">{selectedTicket.title}</p>
-                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Ticket ID</label>
+                    <p className="text-gray-800 bg-gray-50 rounded-md px-3 py-2 border border-[#dedede]">{selectedTicket.id}</p>
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                  <p className="text-gray-800 bg-gray-50 rounded-md px-3 py-2 border min-h-[60px]">{selectedTicket.ticketDescription}</p>
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                    <p className="text-gray-800 bg-gray-50 rounded-md px-3 py-2 border border-[#dedede]">{selectedTicket.title}</p>
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-                  <span className="inline-block bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-semibold">
-                    {selectedTicket.ticketPriority}
-                  </span>
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <p className="text-gray-800 bg-gray-50 rounded-md px-3 py-2 border border-[#dedede] min-h-[60px]">{selectedTicket.ticketDescription}</p>
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Comment</label>
-                  <input
-                    type="text"
-                    value={update.closureComment}
-                    onChange={(e) =>
-                      setUpdate({ ...update, closureComment: e.target.value })
-                    }
-                    className="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
-                    placeholder="Enter your comment..."
-                  />
-                </div>
+                  <div className="flex gap-4">
+                    <div className="w-1/2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                      <span className="inline-block bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-semibold">
+                        {selectedTicket.ticketPriority}
+                      </span>
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                  <select
-                    value={update.ticketStatus}
-                    onChange={(e) =>
-                      setUpdate({ ...update, ticketStatus: e.target.value })
-                    }
-                    className="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
-                  >
-                    <option value="Pending">Pending</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Resolved">Resolved</option>
-                  </select>
+                    <div className="w-1/2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Current Ticket Status</label>
+                      <span className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
+                        {selectedTicket.ticketStatus}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4">
+                    <div className="w-1/2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Requester Name</label>
+                      <p className="text-gray-800 bg-gray-50 rounded-md px-3 py-2 border border-[#dedede]">{selectedTicket.requesterName}</p>
+                    </div>
+
+                    <div className="w-1/2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Requester Dept</label>
+                      <p className="text-gray-800 bg-gray-50 rounded-md px-3 py-2 border border-[#dedede]">{selectedTicket.requesterDept}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4 w-full">
+                    <div className="w-1/2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                      <select
+                        value={update.ticketStatus}
+                        onChange={(e) => {
+                          const status = e.target.value;
+                          setUpdate({
+                            ...update,
+                            ticketStatus: status,
+                            closureComment: status === "Resolved" ? "Awaiting requester's approval" : update.closureComment,
+                          });
+                        }}
+                        className="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                      >
+                        <option value="">Select status</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Resolved">Resolved</option>
+                        <option value="Closed">Closed</option>
+                      </select>
+                    </div>
+
+                    <div className="w-1/2">
+                      <ReassignDropdown
+                        value={update.assignedTo || ""}
+                        onChange={(e) => {
+                          setUpdate({
+                            ...update,
+                            assignedTo: e.target.value,
+                          });
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Comment</label>
+                    <input
+                      type="text"
+                      value={update.closureComment}
+                      onChange={(e) =>
+                        setUpdate({ ...update, closureComment: e.target.value })
+                      }
+                      className="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                      placeholder="Enter your comment..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Attachment</label>
+                    <a
+                      href={selectedTicket.attachment}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      View Attachment
+                    </a>
+                  </div>
+
                 </div>
               </div>
 
-              <div className="pt-4 flex justify-end space-x-3">
+              <div className="p-6 pt-4 bg-white/95 backdrop-blur-md border-t border-gray-200 flex justify-end space-x-3">
                 <button
                   onClick={() => setIsModalOpen(false)}
                   className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
@@ -404,10 +509,17 @@ const AdminDashboard = () => {
                 </button>
                 <button
                   onClick={() => handleUpdate(selectedTicket)}
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-md transition-colors duration-200 shadow-md hover:shadow-lg"
+                  disabled={selectedTicket.ticketStatus === "Resolved" || selectedTicket.ticketStatus === "Closed"}
+                  className={`px-4 py-2 rounded text-white ${selectedTicket.ticketStatus === "Resolved" || selectedTicket.ticketStatus === "Closed"
+                    ? 'bg-green-600 cursor-not-allowed'
+                    : 'bg-orange-500 hover:bg-orange-600'
+                    }`}
                 >
-                  Confirm Update
+                  {selectedTicket.ticketStatus === "Resolved" || selectedTicket.ticketStatus === "Closed"
+                    ? "Resolved"
+                    : "Confirm Update"}
                 </button>
+
               </div>
             </div>
           </div>
@@ -489,6 +601,23 @@ const AdminDashboard = () => {
         </div>
 
       </div> */}
+
+
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm w-full animate-fadeIn">
+            <h2 className="text-orange-500 text-2xl font-bold mb-2">Success!</h2>
+            <p className="text-gray-700 mb-4">Ticket has been successfully updated.</p>
+            <button
+              onClick={() => setShowSuccessModal(false)}
+              className="mt-2 px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition"
+            >
+              Okay
+            </button>
+          </div>
+        </div>
+      )}
+
     </DashboardLayout>
   );
 };

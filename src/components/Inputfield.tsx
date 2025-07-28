@@ -21,7 +21,7 @@ const InputField = ({ label, name, value, onChange, type = "text", placeholder, 
             value={value}
             onChange={onChange}
             placeholder={placeholder}
-            required
+            
             {...props}
             className="w-full border border-gray-300 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
         />
