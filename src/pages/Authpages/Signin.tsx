@@ -9,7 +9,7 @@ const Signin = () => {
     const navigate = useNavigate();
 
     const BASE_URL = "https://reportpool.alphamorganbank.com:8443/api";
-    const BasicAuth = { username: "alphadeskuser", password: "Qwerty1234" };
+    const BasicAuth = { username: "AlphadeskTestuser", password: "Qwerty1234" };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCredentials({ ...credentials, [e.target.name]: e.target.value });

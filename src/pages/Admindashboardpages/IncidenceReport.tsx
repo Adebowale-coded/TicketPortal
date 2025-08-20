@@ -124,7 +124,7 @@ const IncidencePage = () => {
                           setSelectedReport(report);
                           setShowModal(true);
                         }}
-                        className="px-3 py-1 rounded-md transition bg-orange-100 hover:bg-orange-200 text-orange-600 cursor-pointer"
+                        className="px-3 py-1 rounded-md transition bg-orange-100 hover:bg-orange-200 text-orange-500 cursor-pointer"
                       >
                         Edit
                       </button>

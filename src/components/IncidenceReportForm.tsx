@@ -72,18 +72,68 @@ const IncidenceReportForm = ({ report, onSuccess }: Props) => {
         });
     };
 
-
+    const getLocalISOString = () => {
+        const now = new Date();
+        return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 19);
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
         const username = 'Alphadeskuser';
         const password = 'Qwerty1234';
         const basicAuth = 'Basic ' + btoa(`${username}:${password}`);
 
         const isEditMode = !!report;
-        const url = isEditMode
-            ? `https://reportpool.alphamorganbank.com:8443/api/incidents/${report.id}`
-            : 'https://reportpool.alphamorganbank.com:8443/api/incidents';
+
+        // The correct API URL for both POST and PUT
+        const url = 'https://reportpool.alphamorganbank.com:8443/api/incidents';
+
+        const payload = {
+            ...incidentData,
+            ...(isEditMode && { id: report.id }),
+            loggedTime: getLocalISOString(),
+            resolvedAt: getLocalISOString(),
+            closureTime: getLocalISOString()
+        };
+
+        console.log("Submitting payload:", payload); // for debug
+
+        try {
+            const response = await fetch(url, {
+                method: isEditMode ? 'PUT' : 'POST',
+                headers: {
+                    Authorization: basicAuth,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const responseText = await response.text();
+
+            if (!response.ok) {
+                console.error('API error response:', responseText);
+                alert(`Error: ${response.status} - ${response.statusText}`);
+                return;
+            }
+
+            setShowSuccessModal(true);
+        } catch (error: any) {
+            console.error('Fetch error:', error);
+            alert(`Network or fetch error: ${error.message}`);
+        }
+    };
+
+
+    /* const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const username = 'Alphadeskuser';
+        const password = 'Qwerty1234';
+        const basicAuth = 'Basic ' + btoa(`${username}:${password}`);
+
+        
+        const isEditMode = !!report;
+        const url = 'https://reportpool.alphamorganbank.com:8443/api/incidents';
 
         const formData = new FormData();
 
@@ -131,7 +181,7 @@ const IncidenceReportForm = ({ report, onSuccess }: Props) => {
             console.error('Fetch error:', error);
             alert(`Network or fetch error: ${error.message}`);
         }
-    };
+    }; */
 
     const handleSuccessModalClose = () => {
         setShowSuccessModal(false);

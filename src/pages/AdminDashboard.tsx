@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import DashboardLayout from "../layouts/Dashboardlayouts";
 import ReassignDropdown from "../components/ReassignDropdown";
 import axios from "axios";
+import { Search } from "lucide-react";
 
 interface Props {
   id: string;
@@ -30,6 +31,8 @@ const AdminDashboard = () => {
   const closedName = localStorage.getItem("username");
   const [reports, setReports] = useState<Props[]>([]);
 
+
+
   // Updated state object with assignedTo field
   const [update, setUpdate] = useState({
     closureComment: '',
@@ -39,7 +42,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const fetchTickets = async () => {
-      const username = 'Alphadeskuser';
+      const username = 'AlphadeskTestuser';
       const password = 'Qwerty1234';
       const basicAuth = 'Basic ' + btoa(`${username}:${password}`);
       try {
@@ -86,6 +89,7 @@ const AdminDashboard = () => {
   const currentReports = reports.slice(indexOfFirstReport, indexOfLastReport);
 
   // Total pages
+  const pageSize = 10;
   const totalPages = Math.ceil(reports.length / reportsPerPage);
 
   const handleInputChange = (index: number, field: keyof Props | "comment" | "updatedStatus", value: string) => {
@@ -95,7 +99,7 @@ const AdminDashboard = () => {
   };
 
   const handleUpdate = async (prevData: Props) => {
-    const username = 'Alphadeskuser';
+    const username = 'AlphadeskTestuser';
     const password = 'Qwerty1234';
     const basicAuth = 'Basic ' + btoa(`${username}:${password}`);
     try {
@@ -126,6 +130,41 @@ const AdminDashboard = () => {
   const [selectedTicket, setSelectedTicket] = useState<Props | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredTickets, setFilteredTickets] = useState(reports); // tickets = your full list
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
+    setFilteredTickets(reports);
+  };
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredTickets(reports);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+
+    const results = reports.filter(report =>
+      report.id?.toLowerCase().includes(query) ||
+      report.title?.toLowerCase().includes(query) ||
+      report.ticketDescription?.toLowerCase().includes(query) ||
+      report.ticketPriority?.toLowerCase().includes(query) ||
+      report.requesterDept?.toLowerCase().includes(query) ||
+      report.requesterName?.toLowerCase().includes(query) ||
+      report.responsibleTeam?.toLowerCase().includes(query) ||
+      report.ticketStatus?.toLowerCase().includes(query)
+    );
+
+    setFilteredTickets(results);
+  }, [searchQuery, reports]);
+
 
 
   return (
@@ -185,65 +224,55 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Running Projects */}
-        {/* <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-10 translate-x-10"></div>
-          <div className="flex justify-between items-start mb-4 relative z-10">
-            <div>
-              <h3 className="text-sm font-medium opacity-90">Running Projects</h3>
-              <p className="text-3xl font-bold mt-2">
-                {
-                  reports.filter(r =>
-                    r.ticketStatus?.toLowerCase() === 'in progress'
-                  ).length
-                }
-              </p>
-            </div>
-            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/30 transition-colors duration-200">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-              </svg>
-            </div>
-          </div>
-          <div className="flex items-center text-sm opacity-90">
-            <span className="mr-2">⚡</span>
-            <span>Currently in progress</span>
-          </div>
-        </div> */}
 
-        {/* Pending Projects */}
-        {/* <div className="bg-gradient-to-br from-amber-500 to-orange-500 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-10 translate-x-10"></div>
-          <div className="flex justify-between items-start mb-4 relative z-10">
-            <div>
-              <h3 className="text-sm font-medium opacity-90">Pending Projects</h3>
-              <p className="text-3xl font-bold mt-2">
-                {
-                  reports.filter(r =>
-                    r.ticketStatus?.toLowerCase() === 'pending' || !r.ticketStatus
-                  ).length
-                }
-              </p>
-            </div>
-            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/30 transition-colors duration-200">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-              </svg>
-            </div>
-          </div>
-          <div className="flex items-center text-sm opacity-90">
-            <span className="mr-2">💬</span>
-            <span>On Discussion</span>
-          </div>
-        </div> */}
+
+
       </div>
 
       {/* END OF CARD */}{/* END OF CARD */}{/* END OF CARD */}
 
       <div className="mt-8">
-        <div className="pb-[10px]">
+        <div className="pb-[10px] flex justify-between items-center">
           <h2 className="font-bold text-[20px]">Ticketing</h2>
+
+          <div className="flex items-center justify-center p-8">
+            <div className="relative w-full max-w-2xl">
+              <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-600 w-4 h-4" />
+              <input
+                type="text"
+                name="search"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                placeholder="Search by ID, title, description, priority, department, requester, team, status..."
+                className="w-full h-10 pl-12 pr-12 text-sm border border-black rounded-full bg-white 
+                     focus:outline-none focus:border-black
+                     placeholder:text-gray-500"
+              />
+              {searchQuery && (
+                <button
+                  onClick={clearSearch}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 w-4 h-4 flex items-center justify-center"
+                  title="Clear search"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
         </div>
+
+        {/* Search results info */}
+        {searchQuery && (
+          <div className="mb-4 text-sm text-gray-600">
+            Found {filteredTickets.length} ticket{filteredTickets.length !== 1 ? 's' : ''}
+            {searchQuery && ` matching "${searchQuery}"`}
+            {filteredTickets.length === 0 && (
+              <span className="ml-2 text-orange-600">- Try a different search term</span>
+            )}
+          </div>
+        )}
+
+
 
         <div className="shadow-lg border rounded-lg overflow-x-auto max-w-[1200px] bg-white">
           <table className="bg-white min-w-full table-fixed">
@@ -264,7 +293,7 @@ const AdminDashboard = () => {
               </tr>
             </thead>
             <tbody className="text-gray-800 text-sm">
-              {currentReports.map((report, index) => (
+              {filteredTickets.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((report, index) => (
                 <tr key={report.id} className="even:bg-gray-50 hover:bg-blue-50 transition-colors duration-200 border-b border-gray-200">
                   <td className="px-4 py-4 break-words whitespace-normal font-medium text-gray-600">
                     {report.id}
@@ -286,31 +315,28 @@ const AdminDashboard = () => {
                   <td className="px-4 py-4 break-words whitespace-normal text-gray-700">{report.requesterName}</td>
                   <td className="px-4 py-4 break-words whitespace-normal text-gray-700">
                     {
-                      report.responsibleName?.includes("@")
-                        ? report.responsibleName
-                          .split("@")[0]
-                          .split(".")
-                          .map(part => part.charAt(0).toUpperCase() + part.slice(1))
-                          .join(" ")
-                        : report.responsibleName
+                      report.responsibleTeam
                     }
                   </td>
-                  <td className="px-4 py-4 break-words whitespace-normal">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${report.ticketStatus?.toLowerCase() === 'open' || report.ticketStatus?.toLowerCase() === 'new'
-                      ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                      : report.ticketStatus?.toLowerCase() === 'in progress' || report.ticketStatus?.toLowerCase() === 'pending'
-                        ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
-                        : report.ticketStatus?.toLowerCase() === 'resolved' || report.ticketStatus?.toLowerCase() === 'completed'
-                          ? 'bg-green-100 text-green-800 border border-green-200'
-                          : report.ticketStatus?.toLowerCase() === 'closed'
-                            ? 'bg-gray-100 text-gray-800 border border-gray-200'
-                            : report.ticketStatus?.toLowerCase() === 'rejected' || report.ticketStatus?.toLowerCase() === 'cancelled'
-                              ? 'bg-red-100 text-red-800 border border-red-200'
-                              : 'bg-purple-100 text-purple-800 border border-purple-200'
-                      }`}>
-                      {report.ticketStatus}
+                  <td className="px-4 py-4 break-words whitespace-nowrap">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${report.ticketStatus?.toLowerCase() === 'open' || report.ticketStatus?.toLowerCase() === 'new'
+                        ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                        : report.ticketStatus?.toLowerCase() === 'in progress' || report.ticketStatus?.toLowerCase() === 'pending'
+                          ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                          : report.ticketStatus?.toLowerCase() === 'resolved' || report.ticketStatus?.toLowerCase() === 'completed'
+                            ? 'bg-green-100 text-green-800 border border-green-200'
+                            : report.ticketStatus?.toLowerCase() === 'closed'
+                              ? 'bg-gray-100 text-gray-800 border border-gray-200'
+                              : report.ticketStatus?.toLowerCase() === 'rejected' || report.ticketStatus?.toLowerCase() === 'cancelled'
+                                ? 'bg-red-100 text-red-800 border border-red-200'
+                                : 'bg-purple-100 text-purple-800 border border-purple-200'
+                        }`}
+                    >
+                      {report.ticketStatus?.replace(/ /g, '\u00A0')}
                     </span>
                   </td>
+
                   <td className="px-4 py-4 break-words whitespace-normal text-gray-600 font-mono text-xs">
                     {report.loggedTime ? new Date(report.loggedTime).toLocaleString() : "N/A"}
                   </td>
@@ -439,15 +465,24 @@ const AdminDashboard = () => {
 
                   <div className="flex gap-4 w-full">
                     <div className="w-1/2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                      <label
+                        htmlFor="ticketStatus"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Status
+                      </label>
+
                       <select
+                        id="ticketStatus"
                         value={update.ticketStatus}
                         onChange={(e) => {
                           const status = e.target.value;
                           setUpdate({
                             ...update,
                             ticketStatus: status,
-                            closureComment: status === "Resolved" ? "Awaiting requester's approval" : update.closureComment,
+                            closureComment: status === "Resolved"
+                              ? "Awaiting requester's approval"
+                              : update.closureComment,
                           });
                         }}
                         className="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
@@ -458,6 +493,7 @@ const AdminDashboard = () => {
                         <option value="Closed">Closed</option>
                       </select>
                     </div>
+
 
                     <div className="w-1/2">
                       <ReassignDropdown
@@ -529,78 +565,6 @@ const AdminDashboard = () => {
 
       </div>
 
-
-      {/* <div className="pt-[20px]">
-        <h2 className="font-bold text-[20px]">Incidence Report</h2>
-        <div className="bg-white shadow-sm mt-4 p-6 border rounded max-w-4xl">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              // You can replace this with actual API POST
-              alert("Incidence submitted successfully.");
-            }}
-            className="space-y-4"
-          >
-            <div>
-              <label className="block mb-1 font-medium text-gray-700 text-sm">Title</label>
-              <input
-                type="text"
-                name="title"
-                required
-                className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 w-full"
-                placeholder="e.g., VPN not connecting"
-              />
-            </div>
-
-            <div>
-              <label className="block mb-1 font-medium text-gray-700 text-sm">Description</label>
-              <textarea
-                name="description"
-                rows={3}
-                required
-                className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 w-full"
-                placeholder="Describe the issue in detail..."
-              />
-            </div>
-
-            <div>
-              <label className="block mb-1 font-medium text-gray-700 text-sm">Severity</label>
-              <select
-                name="severity"
-                className="px-3 py-2 border border-gray-300 rounded w-full"
-                required
-              >
-                <option value="">Select severity</option>
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
-                <option value="Critical">Critical</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block mb-1 font-medium text-gray-700 text-sm">Reported By</label>
-              <input
-                type="text"
-                name="reportedBy"
-                defaultValue={displayName}
-                readOnly
-                className="bg-gray-100 px-3 py-2 border rounded w-full text-gray-600"
-              />
-            </div>
-
-            <div className="pt-4">
-              <button
-                type="submit"
-                className="bg-green-600 hover:bg-green-700 px-5 py-2 rounded text-white"
-              >
-                Submit Incidence
-              </button>
-            </div>
-          </form>
-        </div>
-
-      </div> */}
 
 
       {showSuccessModal && (

@@ -15,6 +15,17 @@ interface Incident {
   title?: string;
   loggedTime?: string;
   ticketStatus?: string;
+  ticketDescription?: string;
+  ticketPriority?: string;
+  requesterName?: string;
+  requesterDept?: string;
+  responsibleName?: string;
+  responsibleDept?: string;
+  responsibleTeam?: string;
+  ticketSlaStatus?: string;
+  closedBy?: string;
+  closureComment?: string;
+  closureTime?: string;
 }
 
 const UserDashboard = () => {
@@ -44,7 +55,7 @@ const UserDashboard = () => {
     responsibleTeam: '',
     ticketStatus: 'Open',
     ticketSlaStatus: '',
-    loggedTime: new Date().toISOString().slice(0, 19),
+    loggedTime: getLocalISOString(),
     closedBy: '',
     closureComment: '',
     closureTime: '',
@@ -52,6 +63,10 @@ const UserDashboard = () => {
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // New state for view modal
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState<Incident | null>(null);
 
   // Reset form when modal opens
   const resetForm = () => {
@@ -77,6 +92,17 @@ const UserDashboard = () => {
     });
   };
 
+  // Function to handle view button click
+  const handleViewTicket = (ticket: Incident) => {
+    setSelectedTicket(ticket);
+    setIsViewModalOpen(true);
+  };
+
+  // Function to close view modal
+  const closeViewModal = () => {
+    setIsViewModalOpen(false);
+    setSelectedTicket(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,7 +131,7 @@ const UserDashboard = () => {
 
     console.log(Object.keys(ticketData))
     const url = 'https://reportpool.alphamorganbank.com:8443/api/tickets';
-    const username = 'Alphadeskuser';
+    const username = 'AlphadeskTestuser';
     const password = 'Qwerty1234';
     const basicAuth = 'Basic ' + btoa(`${username}:${password}`);
 
@@ -152,7 +178,7 @@ const UserDashboard = () => {
     const fetchTickets = async () => {
       if (!ticketData.requesterName) return;
 
-      const username = 'Alphadeskuser';
+      const username = 'AlphadeskTestuser';
       const password = 'Qwerty1234';
       const basicAuth = 'Basic ' + btoa(`${username}:${password}`);
 
@@ -224,47 +250,34 @@ const UserDashboard = () => {
     ? ticketOptions.find(option => option.category === selectedCategory)?.subcategories.map(sub => sub.name) || []
     : [];
 
-  const issueOptions = selectedSubcategory
-    ? ticketOptions
-      .find(option => option.category === selectedCategory)
-      ?.subcategories.find(sub => sub.name === selectedSubcategory)?.issues || []
-    : [];
+  // const issueOptions = selectedSubcategory
+  //   ? ticketOptions
+  //     .find(option => option.category === selectedCategory)
+  //     ?.subcategories.find(sub => sub.name === selectedSubcategory)?.issues || []
+  //   : [];
 
-  const selectedDept = ticketOptions
-    .find(option => option.category === selectedCategory)
-    ?.subcategories.find(sub => sub.name === selectedSubcategory)?.department || '';
+  // const selectedDept = ticketOptions
+  //   .find(option => option.category === selectedCategory)
+  //   ?.subcategories.find(sub => sub.name === selectedSubcategory)?.department || '';
+
+  const isFormValid = selectedCategory && selectedSubcategory && ticketData.ticketDescription && ticketData.ticketPriority;
 
 
-  //auto close time auto close time
-
-  const getCountdownString = (logged: string | undefined) => {
-    if (!logged) return 'N/A';
-
-    const loggedDate = new Date(logged);
-    const autoCloseTime = new Date(loggedDate.getTime() + 24 * 60 * 60 * 1000);
+  function getLocalISOString() {
     const now = new Date();
-    const diff = autoCloseTime.getTime() - now.getTime();
+    const pad = (n: number) => n.toString().padStart(2, '0');
 
-    if (diff <= 0) return 'Closed';
+    const year = now.getFullYear();
+    const month = pad(now.getMonth() + 1); // Months are zero-based
+    const day = pad(now.getDate());
+    const hours = pad(now.getHours());
+    const minutes = pad(now.getMinutes());
+    const seconds = pad(now.getSeconds());
 
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+  }
 
-    return `${hours}h ${minutes}m ${seconds}s left`;
-  };
 
-  const [, forceUpdate] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      forceUpdate(prev => prev + 1); // force re-render each second
-    }, 1000); // 1 second
-
-    return () => clearInterval(interval); // cleanup
-  }, []);
-
-  // End of Auto time code
 
 
   return (
@@ -314,15 +327,29 @@ const UserDashboard = () => {
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-800">Raise Ticket</h2>
+
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label="Close modal"   // ✅ Accessible name
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"       // ✅ Screen readers will ignore the SVG
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
+
 
             {/* Modal Content */}
             <div className="p-6">
@@ -357,7 +384,7 @@ const UserDashboard = () => {
                       setTicketData(prev => ({
                         ...prev,
                         responsibleTeam: matchedSub?.department || '',
-                        responsibleName: '', 
+                        responsibleName: '',
                       }));
                     }}
                     options={subcategoryOptions}
@@ -456,7 +483,7 @@ const UserDashboard = () => {
                   </button>
                   <button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || !isFormValid}
                     className={`px-6 py-2 rounded-md transition duration-300 font-medium ${isSubmitting
                       ? 'bg-gray-400 cursor-not-allowed'
                       : 'bg-orange-500 hover:bg-orange-600'
@@ -466,6 +493,180 @@ const UserDashboard = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Ticket Modal */}
+      {isViewModalOpen && selectedTicket && (
+        <div className="fixed inset-0 bg-[#0000003f] backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-orange-100">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800">Ticket Details</h2>
+                <p className="text-sm text-gray-600 mt-1">Ticket ID: {selectedTicket.id}</p>
+              </div>
+              <button
+                onClick={closeViewModal}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-white rounded-full"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-6">
+              {/* Status Badge */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <span className={`px-4 py-2 text-sm font-medium rounded-full ${(selectedTicket.status === 'Closed' || selectedTicket.ticketStatus === 'Closed')
+                    ? 'text-green-800 bg-green-100 border border-green-200'
+                    : (selectedTicket.status === 'In Progress' || selectedTicket.ticketStatus === 'In Progress')
+                      ? 'text-blue-800 bg-blue-100 border border-blue-200'
+                      : 'text-orange-800 bg-orange-100 border border-orange-200'
+                    }`}>
+                    {selectedTicket.status || selectedTicket.ticketStatus || 'Open'}
+                  </span>
+                  {selectedTicket.ticketPriority && (
+                    <span className={`px-3 py-1 text-xs font-medium rounded-md ${selectedTicket.ticketPriority === 'High'
+                      ? 'text-red-800 bg-red-100'
+                      : selectedTicket.ticketPriority === 'Medium'
+                        ? 'text-yellow-800 bg-yellow-100'
+                        : 'text-gray-800 bg-gray-100'
+                      }`}>
+                      {selectedTicket.ticketPriority} Priority
+                    </span>
+                  )}
+                </div>
+                <div className="text-sm text-gray-500">
+                  Logged: {selectedTicket.incidentDate ||
+                    (selectedTicket.loggedTime ? new Date(selectedTicket.loggedTime).toLocaleString() : 'N/A')}
+                </div>
+              </div>
+
+              {/* Ticket Information Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Basic Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                    Basic Information
+                  </h3>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">Title</label>
+                    <p className="text-gray-800 bg-gray-50 p-3 rounded-md">
+                      {selectedTicket.incidentTitle || selectedTicket.title || 'N/A'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">Description</label>
+                    <p className="text-gray-800 bg-gray-50 p-3 rounded-md min-h-[80px]">
+                      {selectedTicket.ticketDescription || 'No description provided'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">Priority</label>
+                    <p className="text-gray-800 bg-gray-50 p-3 rounded-md">
+                      {selectedTicket.ticketPriority || 'Not specified'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Assignment Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                    Assignment Details
+                  </h3>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">Requester</label>
+                    <p className="text-gray-800 bg-gray-50 p-3 rounded-md">
+                      {selectedTicket.requesterName || 'N/A'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">Requester Department</label>
+                    <p className="text-gray-800 bg-gray-50 p-3 rounded-md">
+                      {selectedTicket.requesterDept || 'N/A'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">Responsible Team</label>
+                    <p className="text-gray-800 bg-gray-50 p-3 rounded-md">
+                      {selectedTicket.responsibleTeam || 'N/A'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">Responsible Department</label>
+                    <p className="text-gray-800 bg-gray-50 p-3 rounded-md">
+                      {selectedTicket.responsibleDept || 'N/A'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Timeline Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                  Timeline
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">Created Date</label>
+                    <p className="text-gray-800 bg-gray-50 p-3 rounded-md">
+                      {selectedTicket.incidentDate ||
+                        (selectedTicket.loggedTime ? new Date(selectedTicket.loggedTime).toLocaleString() : 'N/A')}
+                    </p>
+                  </div>
+
+                  {selectedTicket.closureTime && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Closed Date</label>
+                      <p className="text-gray-800 bg-gray-50 p-3 rounded-md">
+                        {new Date(selectedTicket.closureTime).toLocaleString()}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {selectedTicket.closureComment && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">Closure Comment</label>
+                    <p className="text-gray-800 bg-gray-50 p-3 rounded-md">
+                      {selectedTicket.closureComment}
+                    </p>
+                  </div>
+                )}
+
+                {selectedTicket.closedBy && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">Closed By</label>
+                    <p className="text-gray-800 bg-gray-50 p-3 rounded-md">
+                      {selectedTicket.closedBy}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50">
+              <button
+                onClick={closeViewModal}
+                className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-white transition duration-300 font-medium"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
@@ -489,7 +690,7 @@ const UserDashboard = () => {
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Status</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Reopen</th>
                   <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">Actions</th>
-                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">Auto Close Time</th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">View</th>
                 </tr>
               </thead>
               <tbody>
@@ -513,26 +714,35 @@ const UserDashboard = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <button className="px-4 py-2 text-sm font-medium rounded-md bg-orange-100 hover:bg-orange-200 text-orange-700 transition-colors">
-                        Edit
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      {(incident.status === 'Resolved' || incident.ticketStatus === 'Resolved') ? (
+                      {(incident.ticketStatus === 'Resolved' || incident.status === 'Resolved') ? (
+                        // Replace your reopen button onClick handler with this:
                         <button
-                          className="px-4 py-2 text-sm font-medium rounded-md bg-green-100 hover:bg-green-200 text-green-700 transition-colors"
+                          className="px-4 py-2 text-sm font-medium rounded-md bg-orange-100 hover:bg-orange-200 text-orange-700 transition-colors"
                           onClick={async () => {
-                            const username = 'Alphadeskuser';
+                            const username = 'AlphadeskTestuser';
                             const password = 'Qwerty1234';
                             const basicAuth = 'Basic ' + btoa(`${username}:${password}`);
 
                             try {
-                              await axios.patch(
-                                `https://reportpool.alphamorganbank.com:8443/api/tickets/${incident.id}`,
+                              await axios.put(
+                                `https://reportpool.alphamorganbank.com:8443/api/tickets`,
                                 {
-                                  ticketStatus: 'Closed',
-                                  closureTime: new Date().toISOString(),
-                                  closureComment: 'User has approved ticket',
+                                  id: incident.id,
+                                  title: incident.title ?? null,
+                                  ticketDescription: incident.ticketDescription ?? null,
+                                  ticketPriority: incident.ticketPriority ?? null,
+                                  requesterDept: incident.requesterDept ?? null,
+                                  requesterName: incident.requesterName ?? null,
+                                  responsibleName: incident.responsibleName ?? null,
+                                  responsibleDept: incident.responsibleDept ?? null,
+                                  responsibleTeam: incident.responsibleTeam ?? null,
+                                  ticketStatus: 'Open', // only this is changed
+                                  ticketSlaStatus: incident.ticketSlaStatus ?? null,
+                                  attachment: null,
+                                  loggedTime: incident.loggedTime ?? null,
+                                  closedBy: incident.closedBy,
+                                  closureComment: null,
+                                  closureTime: null
                                 },
                                 {
                                   headers: {
@@ -542,14 +752,80 @@ const UserDashboard = () => {
                                 }
                               );
 
-                              // Refresh tickets after update
-                              settickets(prev => prev.map(t =>
-                                t.id === incident.id ? { ...t, ticketStatus: 'Closed', closureComment: 'User has approved ticket' } : t
-                              ));
+                              settickets(prevTickets =>
+                                prevTickets.map(ticket =>
+                                  ticket.id === incident.id
+                                    ? {
+                                      ...ticket,
+                                      ticketStatus: 'Open',
+                                      status: 'Open',
+                                      closureTime: '',
+                                      closureComment: '',
+                                      closedBy: '',
+                                    }
+                                    : ticket
+                                )
+                              );
+
+                              console.log(`Ticket ${incident.id} reopened successfully`);
                             } catch (err) {
-                              console.error('Failed to approve ticket:', err);
+                              console.error('Failed to reopen ticket:', err);
+                              alert('Failed to reopen ticket. Please try again.');
                             }
                           }}
+
+
+                        >
+                          Reopen
+                        </button>
+                      ) : (
+                        <span className="text-sm text-gray-500">—</span>
+                      )}
+                    </td>
+
+                    <td className="px-6 py-4 text-center">
+                      {(incident.status === 'Closed' || incident.ticketStatus === 'Closed') ? (
+                        <button
+                          className="px-4 py-2 text-sm font-medium rounded-md bg-green-100 hover:bg-green-200 text-green-700 transition-colors"
+                          onClick={async () => {
+                            console.log("Approve clicked for incident ID:", incident.id); // <-- Add this
+                            const username = 'AlphadeskTestuser';
+                            const password = 'Qwerty1234';
+                            const basicAuth = 'Basic ' + btoa(`${username}:${password}`);
+
+                            try {
+                              const response = await axios.put(
+                                `https://reportpool.alphamorganbank.com:8443/api/tickets`,
+                                {
+                                  id: incident.id,
+                                  ticketStatus: 'Closed',
+                                  closureComment: 'User has approved ticket',
+                                  closureTime: new Date().toISOString(),
+
+                                },
+
+                                {
+                                  headers: {
+                                    Authorization: basicAuth,
+                                    'Content-Type': 'application/json',
+                                  },
+                                }
+                              );
+
+                              console.log("Response:", response.data); // <-- Log response
+
+                              settickets(prev =>
+                                prev.map(t =>
+                                  t.id === incident.id
+                                    ? { ...t, ticketStatus: 'Closed', closureComment: 'User has approved ticket' }
+                                    : t
+                                )
+                              );
+                            } catch (err) {
+                              console.error('Failed to approve ticket:', err); // <-- Check if anything shows here
+                            }
+                          }}
+
                         >
                           Approve
                         </button>
@@ -558,7 +834,12 @@ const UserDashboard = () => {
                       )}
                     </td>
                     <td className="px-6 py-4 text-center text-sm text-gray-600">
-                      {getCountdownString(incident.loggedTime || incident.incidentDate)}
+                      <button
+                        onClick={() => handleViewTicket(incident)}
+                        className="px-4 py-2 text-sm font-medium rounded-md bg-orange-400 hover:bg-orange-300 text-white transition-colors"
+                      >
+                        View
+                      </button>
                     </td>
                   </tr>
                 ))}
